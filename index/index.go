@@ -3,7 +3,7 @@ package index
 import b "github.com/WatchJani/BPlustTree/btree"
 
 type Index struct {
-	name string
+	name string //not important to much
 	size int
 	//menage
 	//tree
@@ -23,7 +23,7 @@ func (i *Index) GetColumnNumber() int {
 	return len(i.byColumn)
 }
 
-func New(name string, byColumn []string) Index {
+func New(name string, byColumn ...string) Index {
 	return Index{
 		name:     name,
 		index:    b.New[int, int](5),

@@ -2,18 +2,20 @@ package index
 
 import (
 	"fmt"
+	"root/column"
 )
 
 const Cluster string = "cluster"
 
 type IndexBuilder struct {
-	columns []string
+	columns []column.Column
 	index   []Index
 }
 
+// add secondary index
 func (ib *IndexBuilder) AddIndex(newIndex Index) error {
 	for _, index := range ib.columns {
-		if index == newIndex.byColumn[0] {
+		if index.GetName() == newIndex.byColumn[0] {
 			ib.index = append(ib.index, newIndex)
 			return nil
 		}
@@ -22,24 +24,25 @@ func (ib *IndexBuilder) AddIndex(newIndex Index) error {
 	return fmt.Errorf("column %s not exist", newIndex.name)
 }
 
-func NewIndexBuilder(columns []string, index []Index) (*IndexBuilder, error) {
-	// counter, clusterIndex := 0, index[0]
-	// for i := 0; i < len(index); i++ {
-	// 	for _, column := range columns {
-	// 		if clusterIndex.byColumn[i] == column {
-	// 			counter++
-	// 			break
-	// 		}
-	// 	}
+func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error) {
+	counter, i := 0, 0
+	for i < len(index.byColumn) {
+		for _, column := range columns {
+			if index.byColumn[i] == column.GetName() {
+				counter++
+				break
+			}
+		}
+		i++
 
-	// 	if i != counter {
-	// 		return nil, fmt.Errorf("index column field %s not exit", index[0].byColumn[i])
-	// 	}
-	// }
+		if i != counter {
+			return nil, fmt.Errorf("index column field [%s] not exit", index.byColumn[i])
+		}
+	}
 
 	return &IndexBuilder{
 		columns: columns,
-		index:   index,
+		index:   []Index{index},
 	}, nil
 }
 

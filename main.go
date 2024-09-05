@@ -3,20 +3,29 @@ package main
 import (
 	"fmt"
 	"log"
+	"root/column"
 	"root/index"
 )
 
 func main() {
-	columns := []string{"id", "name", "phone", "sex", "age"}
-
-	clusterIndex := index.New("cluster", []string{"id", "age"})
-
-	IndexBuilder, err := index.NewIndexBuilder(columns, []index.Index{clusterIndex})
-	if err != nil {
-		log.Println(err)
+	columns := []column.Column{
+		column.New("id", "UUID"),
+		column.New("name", "TEXT"),
+		column.New("phone", "TEXT"),
+		column.New("sex", "TEXT"),
+		column.New("age", "int"),
 	}
 
-	userField := []string{"id"}
+	clusterIndex := index.New("cluster", "id", "age")
+
+	IndexBuilder, err := index.NewIndexBuilder(columns, clusterIndex)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	IndexBuilder.AddIndex(index.New("age", "age"))
+
+	userField := []string{"age"}
 
 	fmt.Println(IndexBuilder.Choice(userField))
 }
