@@ -33,10 +33,10 @@ func main() {
 	builder := builder.New(buf)
 
 	dataInsert := []byte("Janko")
-	builder.Insert(dataInsert, builder.Reservations(dataInsert))
+	builder.ParallelWrite(dataInsert)
 
 	dataInsert = []byte("Kondic")
-	builder.Insert(dataInsert, builder.Reservations(dataInsert))
+	builder.ParallelWrite(dataInsert)
 
 	fmt.Println(buf[:15])
 }

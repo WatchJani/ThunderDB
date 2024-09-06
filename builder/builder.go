@@ -19,7 +19,7 @@ func (b *Builder) Reset() {
 }
 
 // use for parallel writing in memory
-func (b *Builder) Reservations(data []byte) int {
+func (b *Builder) reservations(data []byte) int {
 	b.Lock()
 	defer b.Unlock()
 
@@ -29,6 +29,19 @@ func (b *Builder) Reservations(data []byte) int {
 	return currentOffset
 }
 
-func (b *Builder) Insert(data []byte, position int) {
+func (b *Builder) insert(data []byte, position int) {
 	copy(b.buf[position:], data)
+}
+
+func (b *Builder) ParallelWrite(data []byte) {
+	b.insert(data, b.reservations(data))
+}
+
+func (b *Builder) Write(data []byte) {
+	copy(b.buf[b.counter:], data)
+	b.counter += len(data)
+}
+
+func (b *Builder) GetData() []byte {
+	return b.buf[:b.counter]
 }
