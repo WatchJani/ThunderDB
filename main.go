@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"root/builder"
 )
 
 func main() {
@@ -28,15 +28,24 @@ func main() {
 
 	// fmt.Println(IndexBuilder.Choice(userField))
 
-	buf := make([]byte, 4096)
+	//)====================================================0
+	// buf := make([]byte, 4096)
 
-	builder := builder.New(buf)
+	// builder := builder.New(buf)
 
-	dataInsert := []byte("Janko")
-	builder.ParallelWrite(dataInsert)
+	// dataInsert := []byte("Janko")
+	// builder.ParallelWrite(dataInsert)
 
-	dataInsert = []byte("Kondic")
-	builder.ParallelWrite(dataInsert)
+	// dataInsert = []byte("Kondic")
+	// builder.ParallelWrite(dataInsert)
 
-	fmt.Println(buf[:15])
+	// fmt.Println(buf[:15])
+
+	//)====================================================0
+	req := []byte("45")
+	f := []byte("300")
+
+	fmt.Println(bytes.Compare(req, f))
+
+	fmt.Println("045" < "300")
 }

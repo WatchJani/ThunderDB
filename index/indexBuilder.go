@@ -48,6 +48,8 @@ func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error
 	}, nil
 }
 
+//! vrati mi index kolone i funkcije koje mi trebaju za pretragu
+
 // new logic, just fix this code
 func (ib *IndexBuilder) Choice(userField []string) (Index, bool) {
 	var i, j int
