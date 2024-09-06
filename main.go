@@ -1,10 +1,5 @@
 package main
 
-import (
-	"bytes"
-	"fmt"
-)
-
 func main() {
 	// columns := []column.Column{
 	// 	column.New("id", "UUID"),
@@ -42,10 +37,5 @@ func main() {
 	// fmt.Println(buf[:15])
 
 	//====================================================
-	req := []byte("45")
-	f := []byte("300")
 
-	fmt.Println(bytes.Compare(req, f))
-
-	fmt.Println("045" < "300")
 }
