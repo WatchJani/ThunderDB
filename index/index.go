@@ -6,14 +6,9 @@ type Index struct {
 	name string //not important to much
 	size int
 	//menage
-	//tree
 	index    *b.Tree[int, int]
 	byColumn []string
 }
-
-// func (i *Index) GetColumn() []string {
-// 	return i.byColumn
-// }
 
 func (i *Index) GetIndexSize() int {
 	return i.size

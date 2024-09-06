@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"root/builder"
 	"root/column"
 )
 
@@ -10,6 +11,7 @@ const Cluster string = "cluster"
 type IndexBuilder struct {
 	columns []column.Column
 	index   []Index
+	builder.Builder
 }
 
 // add secondary index
@@ -46,6 +48,7 @@ func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error
 	}, nil
 }
 
+// new logic, just fix this code
 func (ib *IndexBuilder) Choice(userField []string) (Index, bool) {
 	var i, j int
 
