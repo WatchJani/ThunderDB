@@ -1,6 +1,7 @@
 package thunder
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"regexp"
@@ -22,26 +23,62 @@ func New() *Thunder {
 	}
 }
 
-func (t *Thunder) CreateDatabase(name string) error {
+func (t *Thunder) CreateDatabase(name []byte) error {
 	t.Lock()
 	defer t.Unlock()
 
-	if _, ok := t.thunder[name]; ok {
+	databaseName := string(name)
+
+	if _, ok := t.thunder[databaseName]; ok {
 		return fmt.Errorf("database [%s] is exist", name)
 	}
 
-	t.thunder[name] = database.New(name)
+	t.thunder[databaseName] = database.New(databaseName)
 	fmt.Printf("New database [%s] is created\n", name)
 	return nil
 }
 
-// func (t *Thunder) Write() {
+func (t *Thunder) Insert(query []byte) error {
+	return nil
+}
 
-// }
+func (t *Thunder) Search(query []byte) error {
+	parts := bytes.SplitN(query, []byte(" "), 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("wrong query: %s", query)
+	}
 
-// func (t *Thunder) Read() {
+	dbTable := bytes.Split(parts[0], []byte("."))
+	if len(dbTable) != 2 {
+		return fmt.Errorf("wrong database name or table name: %s", parts[0])
+	}
 
-// }
+	database := string(dbTable[0])
+	queryDatabase := t.SelectDatabase(database)
+
+	table := string(dbTable[1])
+	queryTable := queryDatabase.SelectTable(table)
+
+	conditionsPart := parts[1]
+	conditionStrings := bytes.Split(conditionsPart, []byte(" "))
+	conditions := make([]index.Condition, 0, 2)
+
+	for i := 0; i < len(conditionStrings); i += 4 {
+		Field := conditionStrings[i]
+		Type := conditionStrings[i+1]
+		Operator := conditionStrings[i+2]
+		Value := conditionStrings[i+3]
+
+		conditions = append(conditions, index.Condition{
+			Field:    string(Field),
+			Type:     Type,
+			Operator: Operator,
+			Value:    Value,
+		})
+	}
+
+	return queryTable.Search(conditions)
+}
 
 func (t *Thunder) QueryParser(payload []byte) error {
 	command, args := findCommand(payload)
@@ -52,13 +89,16 @@ func (t *Thunder) QueryParser(payload []byte) error {
 	case "CREATE_TABLE":
 		return t.CreateTable(args)
 	case "INSERT":
-		return nil
+		return t.Insert(args)
+	case "SEARCH":
+		return t.Search(args)
 	default:
 		return errors.New("command is not exist")
 	}
 }
 
-func (t *Thunder) CreateTable(query string) error {
+func (t *Thunder) CreateTable(table []byte) error {
+	query := string(table)
 	tableInfo := index.NewTableInfo()
 
 	re := regexp.MustCompile(`(?i)(\w+)\.(\w+)\s+(.*)\s*\[(.*?)\]`)
@@ -91,12 +131,16 @@ func (t *Thunder) CreateTable(query string) error {
 	return database.CreateTable(tableInfo.Table, tableInfo.Columns, index.New(tableInfo.Indexes...))
 }
 
-func findCommand(payload []byte) (string, string) {
+func findCommand(payload []byte) (string, []byte) {
 	for i := 0; i < len(payload); i++ {
 		if payload[i] == ' ' {
-			return string(payload[:i]), string(payload[i+1:])
+			return string(payload[:i]), payload[i+1:]
 		}
 	}
 
-	return "", ""
+	return "", []byte{}
+}
+
+func (t *Thunder) SelectDatabase(name string) *database.Database {
+	return t.thunder[name]
 }

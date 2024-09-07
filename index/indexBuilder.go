@@ -15,10 +15,10 @@ type Table struct {
 }
 
 // add secondary index
-func (ib *Table) AddIndex(newIndex Index) error {
-	for _, index := range ib.columns {
+func (t *Table) AddIndex(newIndex Index) error {
+	for _, index := range t.columns {
 		if index.GetName() == newIndex.byColumn[0] {
-			ib.index = append(ib.index, newIndex)
+			t.index = append(t.index, newIndex)
 			return nil
 		}
 	}
@@ -48,18 +48,23 @@ func NewTable(columns []column.Column, index Index) (*Table, error) {
 	}, nil
 }
 
-//! vrati mi index kolone i funkcije koje mi trebaju za pretragu
+type Condition struct {
+	Field    string
+	Operator []byte
+	Value    []byte
+	Type     []byte
+}
 
 // new logic, just fix this code
-func (ib *Table) Choice(userField []string) (Index, bool) {
+func (ib *Table) Choice(userQuery []Condition) (Index, bool) {
 	var i, j int
 
 	//check cluster index
 	clusterIndex := ib.index[0]
-	for i < clusterIndex.GetColumnNumber() && j < len(userField) {
-		for j < len(userField) {
-			if clusterIndex.byColumn[i] == userField[j] {
-				userField[i], userField[j] = userField[j], userField[i]
+	for i < clusterIndex.GetColumnNumber() && j < len(userQuery) {
+		for j < len(userQuery) {
+			if clusterIndex.byColumn[i] == userQuery[j].Field {
+				userQuery[i], userQuery[j] = userQuery[j], userQuery[i]
 				i++
 				j = i
 				break
@@ -78,12 +83,16 @@ func (ib *Table) Choice(userField []string) (Index, bool) {
 
 	//check non-cluster index
 	for i := 1; i < len(ib.index); i++ {
-		for j := 0; j < len(userField); j++ {
-			if ib.index[i].byColumn[0] == userField[j] {
+		for j := 0; j < len(userQuery); j++ {
+			if ib.index[i].byColumn[0] == userQuery[j].Field {
 				return ib.index[i], false
 			}
 		}
 	}
 
 	return clusterIndex, true
+}
+
+func (ib *Table) Search(userQuery []Condition) error {
+	return nil
 }

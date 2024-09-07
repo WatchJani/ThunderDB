@@ -26,3 +26,4 @@ func New(byColumn ...string) Index {
 		// byColumn: byColumn,
 	}
 }
+

@@ -28,3 +28,7 @@ func (db *Database) CreateTable(tableName string, columns []column.Column, clust
 	fmt.Printf("New table [%s] is created\n", tableName)
 	return err
 }
+
+func (db *Database) SelectTable(name string) *index.Table {
+	return db.table[name]
+}
