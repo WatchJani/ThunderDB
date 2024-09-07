@@ -23,7 +23,7 @@ func (ib *Table) AddIndex(newIndex Index) error {
 		}
 	}
 
-	return fmt.Errorf("column %s not exist", newIndex.name)
+	return fmt.Errorf("column %s not exist", newIndex.byColumn[0])
 }
 
 func NewTable(columns []column.Column, index Index) (*Table, error) {
@@ -79,7 +79,7 @@ func (ib *Table) Choice(userField []string) (Index, bool) {
 	//check non-cluster index
 	for i := 1; i < len(ib.index); i++ {
 		for j := 0; j < len(userField); j++ {
-			if ib.index[i].name == userField[j] {
+			if ib.index[i].byColumn[0] == userField[j] {
 				return ib.index[i], false
 			}
 		}

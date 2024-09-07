@@ -1,6 +1,10 @@
 package database
 
-import "root/index"
+import (
+	"fmt"
+	"root/column"
+	"root/index"
+)
 
 type Database struct {
 	table map[string]*index.Table //index builder is table
@@ -13,6 +17,14 @@ func New(name string) *Database {
 }
 
 // name of table, and all information about table
-func (db *Database) CreateTable() {
+func (db *Database) CreateTable(tableName string, columns []column.Column, clusterIndex index.Index) error {
+	if _, ok := db.table[tableName]; ok {
+		return fmt.Errorf("this table [%s] is exist", tableName)
+	}
 
+	table, err := index.NewTable(columns, clusterIndex)
+	db.table[tableName] = table
+
+	fmt.Printf("New table [%s] is created\n", tableName)
+	return err
 }

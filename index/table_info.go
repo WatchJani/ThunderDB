@@ -6,10 +6,9 @@ import (
 )
 
 type TableInfo struct {
-	Database string
-	Table    string
-	Columns  []column.Column
-	Indexes  []string
+	Table   string
+	Columns []column.Column
+	Indexes []string
 }
 
 func NewTableInfo() *TableInfo {
@@ -20,5 +19,5 @@ func NewTableInfo() *TableInfo {
 }
 
 func (t *TableInfo) String() string {
-	return fmt.Sprintf("database: %s | table: %s | columns: %v | index: %v", t.Database, t.Table, t.Columns, t.Indexes)
+	return fmt.Sprintf("table: %s | columns: %v | index: %v", t.Table, t.Columns, t.Indexes)
 }

@@ -68,7 +68,7 @@ func (t *Thunder) CreateTable(query string) error {
 		return fmt.Errorf("wrong SQL query format")
 	}
 
-	tableInfo.Database = matches[1]
+	database := t.thunder[matches[1]]
 	tableInfo.Table = matches[2]
 
 	columnsPart := matches[3]
@@ -88,9 +88,7 @@ func (t *Thunder) CreateTable(query string) error {
 		tableInfo.Indexes = append(tableInfo.Indexes, strings.TrimSpace(index))
 	}
 
-	fmt.Println(tableInfo.String())
-
-	return nil
+	return database.CreateTable(tableInfo.Table, tableInfo.Columns, index.New(tableInfo.Indexes...))
 }
 
 func findCommand(payload []byte) (string, string) {
