@@ -20,7 +20,7 @@ func BenchmarkChoice(b *testing.B) {
 
 	clusterIndex := New("cluster", "id", "age")
 
-	IndexBuilder, err := NewIndexBuilder(columns, clusterIndex)
+	IndexBuilder, err := NewTable(columns, clusterIndex)
 	if err != nil {
 		log.Println(err)
 		return

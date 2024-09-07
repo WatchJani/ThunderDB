@@ -3,12 +3,12 @@ package database
 import "root/index"
 
 type Database struct {
-	table map[string]*index.IndexBuilder //index builder is table
+	table map[string]*index.Table //index builder is table
 }
 
 func New(name string) *Database {
 	return &Database{
-		table: make(map[string]*index.IndexBuilder),
+		table: make(map[string]*index.Table),
 	}
 }
 

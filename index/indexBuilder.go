@@ -8,14 +8,14 @@ import (
 
 const Cluster string = "cluster"
 
-type IndexBuilder struct {
+type Table struct {
 	columns []column.Column
 	index   []Index
 	builder.Builder
 }
 
 // add secondary index
-func (ib *IndexBuilder) AddIndex(newIndex Index) error {
+func (ib *Table) AddIndex(newIndex Index) error {
 	for _, index := range ib.columns {
 		if index.GetName() == newIndex.byColumn[0] {
 			ib.index = append(ib.index, newIndex)
@@ -26,7 +26,7 @@ func (ib *IndexBuilder) AddIndex(newIndex Index) error {
 	return fmt.Errorf("column %s not exist", newIndex.name)
 }
 
-func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error) {
+func NewTable(columns []column.Column, index Index) (*Table, error) {
 	counter, i := 0, 0
 	for i < len(index.byColumn) {
 		for _, column := range columns {
@@ -42,7 +42,7 @@ func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error
 		}
 	}
 
-	return &IndexBuilder{
+	return &Table{
 		columns: columns,
 		index:   []Index{index},
 	}, nil
@@ -51,7 +51,7 @@ func NewIndexBuilder(columns []column.Column, index Index) (*IndexBuilder, error
 //! vrati mi index kolone i funkcije koje mi trebaju za pretragu
 
 // new logic, just fix this code
-func (ib *IndexBuilder) Choice(userField []string) (Index, bool) {
+func (ib *Table) Choice(userField []string) (Index, bool) {
 	var i, j int
 
 	//check cluster index

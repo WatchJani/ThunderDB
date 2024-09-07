@@ -1,5 +1,9 @@
 package main
 
+import (
+	_ "root/init"
+)
+
 func main() {
 	// columns := []column.Column{
 	// 	column.New("id", "UUID"),
