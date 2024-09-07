@@ -54,10 +54,16 @@ func (t *Thunder) Search(query []byte) error {
 	}
 
 	database := string(dbTable[0])
-	queryDatabase := t.SelectDatabase(database)
+	queryDatabase, err := t.SelectDatabase(database)
+	if err != nil {
+		return err
+	}
 
 	table := string(dbTable[1])
-	queryTable := queryDatabase.SelectTable(table)
+	queryTable, err := queryDatabase.SelectTable(table)
+	if err != nil {
+		return err
+	}
 
 	conditionsPart := parts[1]
 	conditionStrings := bytes.Split(conditionsPart, []byte(" "))
@@ -141,6 +147,10 @@ func findCommand(payload []byte) (string, []byte) {
 	return "", []byte{}
 }
 
-func (t *Thunder) SelectDatabase(name string) *database.Database {
-	return t.thunder[name]
+func (t *Thunder) SelectDatabase(name string) (*database.Database, error) {
+	if database, ok := t.thunder[name]; ok {
+		return database, nil
+	}
+
+	return nil, fmt.Errorf("this database [%s] is not exist", name)
 }

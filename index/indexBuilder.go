@@ -94,5 +94,6 @@ func (ib *Table) Choice(userQuery []Condition) (Index, bool) {
 }
 
 func (ib *Table) Search(userQuery []Condition) error {
+
 	return nil
 }

@@ -29,6 +29,10 @@ func (db *Database) CreateTable(tableName string, columns []column.Column, clust
 	return err
 }
 
-func (db *Database) SelectTable(name string) *index.Table {
-	return db.table[name]
+func (db *Database) SelectTable(tableName string) (*index.Table, error) {
+	if table, ok := db.table[tableName]; ok {
+		return table, nil
+	}
+
+	return nil, fmt.Errorf("this table [%s] is not exist", tableName)
 }
