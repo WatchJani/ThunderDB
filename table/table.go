@@ -1,9 +1,10 @@
-package index
+package table
 
 import (
 	"fmt"
 	"root/builder"
 	"root/column"
+	"root/index"
 	"root/query"
 )
 
@@ -11,27 +12,27 @@ const Cluster string = "cluster"
 
 type Table struct {
 	columns []column.Column
-	index   []Index
+	index   []index.Index
 	builder.Builder
 }
 
 // add secondary index
-func (t *Table) AddIndex(newIndex Index) error {
+func (t *Table) AddIndex(newIndex index.Index) error {
 	for _, index := range t.columns {
-		if index.GetName() == newIndex.byColumn[0] {
+		if index.GetName() == newIndex.GetByColumn(0) {
 			t.index = append(t.index, newIndex)
 			return nil
 		}
 	}
 
-	return fmt.Errorf("column %s not exist", newIndex.byColumn[0])
+	return fmt.Errorf("column %s not exist", newIndex.GetByColumn(0))
 }
 
-func NewTable(columns []column.Column, index Index) (*Table, error) {
+func NewTable(columns []column.Column, clusterIndex index.Index) (*Table, error) {
 	counter, i := 0, 0
-	for i < len(index.byColumn) {
+	for i < clusterIndex.LenByColumn() {
 		for _, column := range columns {
-			if index.byColumn[i] == column.GetName() {
+			if clusterIndex.GetByColumn(i) == column.GetName() {
 				counter++
 				break
 			}
@@ -39,15 +40,13 @@ func NewTable(columns []column.Column, index Index) (*Table, error) {
 		i++
 
 		if i != counter {
-			return nil, fmt.Errorf("index column field [%s] not exit", index.byColumn[i])
+			return nil, fmt.Errorf("index column field [%s] not exit", clusterIndex.GetByColumn(i))
 		}
 	}
 
-	fmt.Println(index)
-
 	return &Table{
 		columns: columns,
-		index:   []Index{index},
+		index:   []index.Index{clusterIndex},
 	}, nil
 }
 
@@ -59,14 +58,14 @@ type Condition struct {
 }
 
 // new logic, just fix this code
-func (ib *Table) Choice(userQuery []Condition) (Index, []func([]byte) bool, bool) {
+func (ib *Table) Choice(userQuery []Condition) (index.Index, []func([]byte) bool, bool) {
 	var i, j int
 
 	//check cluster index
 	clusterIndex := ib.index[0]
 	for i < clusterIndex.GetColumnNumber() && j < len(userQuery) {
 		for j < len(userQuery) {
-			if clusterIndex.byColumn[i] == userQuery[j].Field {
+			if clusterIndex.GetByColumn(i) == userQuery[j].Field {
 				userQuery[i], userQuery[j] = userQuery[j], userQuery[i]
 				i++
 				j = i
@@ -91,7 +90,7 @@ func (ib *Table) Choice(userQuery []Condition) (Index, []func([]byte) bool, bool
 	//check non-cluster index
 	for i := 1; i < len(ib.index); i++ {
 		for j := 0; j < len(userQuery); j++ {
-			if ib.index[i].byColumn[0] == userQuery[j].Field {
+			if ib.index[i].GetByColumn(0) == userQuery[j].Field {
 
 				filter := make([]func([]byte) bool, len(userQuery)-1)
 				CreateFilter(userQuery[1:], filter)

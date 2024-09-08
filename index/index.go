@@ -26,3 +26,11 @@ func New(byColumn ...string) Index {
 		byColumn: byColumn,
 	}
 }
+
+func (i *Index) GetByColumn(index int) string {
+	return i.byColumn[index]
+}
+
+func (i *Index) LenByColumn() int {
+	return len(i.byColumn)
+}

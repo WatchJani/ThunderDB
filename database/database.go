@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"root/column"
 	"root/index"
+	"root/table"
 )
 
 type Database struct {
-	table map[string]*index.Table //index builder is table
+	table map[string]*table.Table //index builder is table
 }
 
 func New(name string) *Database {
 	return &Database{
-		table: make(map[string]*index.Table),
+		table: make(map[string]*table.Table),
 	}
 }
 
@@ -22,14 +23,14 @@ func (db *Database) CreateTable(tableName string, columns []column.Column, clust
 		return fmt.Errorf("this table [%s] is exist", tableName)
 	}
 
-	table, err := index.NewTable(columns, clusterIndex)
+	table, err := table.NewTable(columns, clusterIndex)
 	db.table[tableName] = table
 
 	fmt.Printf("New table [%s] is created\n", tableName)
 	return err
 }
 
-func (db *Database) SelectTable(tableName string) (*index.Table, error) {
+func (db *Database) SelectTable(tableName string) (*table.Table, error) {
 	if table, ok := db.table[tableName]; ok {
 		return table, nil
 	}

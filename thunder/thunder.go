@@ -8,6 +8,7 @@ import (
 	"root/column"
 	"root/database"
 	"root/index"
+	"root/table"
 	"strings"
 	"sync"
 )
@@ -59,15 +60,15 @@ func (t *Thunder) Search(query []byte) error {
 		return err
 	}
 
-	table := string(dbTable[1])
-	queryTable, err := queryDatabase.SelectTable(table)
+	tableReq := string(dbTable[1])
+	queryTable, err := queryDatabase.SelectTable(tableReq)
 	if err != nil {
 		return err
 	}
 
 	conditionsPart := parts[1]
 	conditionStrings := bytes.Split(conditionsPart, []byte(" "))
-	conditions := make([]index.Condition, 0, 2)
+	conditions := make([]table.Condition, 0, 2)
 
 	for i := 0; i < len(conditionStrings); i += 4 {
 		Field := conditionStrings[i]
@@ -75,7 +76,7 @@ func (t *Thunder) Search(query []byte) error {
 		Operator := conditionStrings[i+2]
 		Value := conditionStrings[i+3]
 
-		conditions = append(conditions, index.Condition{
+		conditions = append(conditions, table.Condition{
 			Field:    string(Field),
 			Type:     string(Type),
 			Operator: Operator,
@@ -102,9 +103,9 @@ func (t *Thunder) QueryParser(payload []byte) error {
 	}
 }
 
-func (t *Thunder) CreateTable(table []byte) error {
-	query := string(table)
-	tableInfo := index.NewTableInfo()
+func (t *Thunder) CreateTable(tableQuery []byte) error {
+	query := string(tableQuery)
+	tableInfo := table.NewTableInfo()
 
 	re := regexp.MustCompile(`(?i)(\w+)\.(\w+)\s+(.*)\s*\[(.*?)\]`)
 
