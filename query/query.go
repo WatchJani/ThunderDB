@@ -10,7 +10,7 @@ func CreateDataBase() []byte {
 //CREATE_TABLE   database   TABLE_NAME  (name TEXT Age INT)
 
 func CreateTable() []byte {
-	return []byte("CREATE_TABLE Movies.Actors id UUID, name TEXT, age INT [id, name]")
+	return []byte("CREATE_TABLE Movies.Actor id UUID, name TEXT, age INT [id, name]")
 }
 
 // INSERT
@@ -22,5 +22,5 @@ func Insert() []byte {
 // SEARCH Database Table
 // name (TEXT) == "Janko" age (INT) >= 18
 func Search() []byte {
-	return []byte("SEARCH Movies.Actor name(TEXT) == Janko age(INT) >= 18")
+	return []byte("SEARCH Movies.Actor id (UUID) == 874123 name (TEXT) == Janko")
 }

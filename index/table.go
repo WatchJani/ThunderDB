@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"root/builder"
 	"root/column"
+	"root/query"
 )
 
 const Cluster string = "cluster"
@@ -52,11 +53,11 @@ type Condition struct {
 	Field    string
 	Operator []byte
 	Value    []byte
-	Type     []byte
+	Type     string
 }
 
 // new logic, just fix this code
-func (ib *Table) Choice(userQuery []Condition) (Index, bool) {
+func (ib *Table) Choice(userQuery []Condition) (Index, []func([]byte) bool, bool) {
 	var i, j int
 
 	//check cluster index
@@ -78,22 +79,44 @@ func (ib *Table) Choice(userQuery []Condition) (Index, bool) {
 	}
 
 	if i != 0 {
-		return clusterIndex, false
+		filter := make([]func([]byte) bool, len(userQuery)-i)
+		CreateFilter(userQuery[i:], filter)
+		return clusterIndex, filter, false
 	}
 
 	//check non-cluster index
 	for i := 1; i < len(ib.index); i++ {
 		for j := 0; j < len(userQuery); j++ {
 			if ib.index[i].byColumn[0] == userQuery[j].Field {
-				return ib.index[i], false
+
+				filter := make([]func([]byte) bool, len(userQuery)-1)
+				CreateFilter(userQuery[1:], filter)
+				return ib.index[i], filter, false
 			}
 		}
 	}
 
-	return clusterIndex, true
+	filter := make([]func([]byte) bool, len(userQuery))
+	fmt.Println(len(userQuery))
+	CreateFilter(userQuery, filter)
+	return clusterIndex, filter, true
+}
+
+func CreateFilter(userQuery []Condition, filter []func([]byte) bool) {
+	for i := 0; i < len(userQuery); i++ {
+		filter[i] = query.GenerateFilter(
+			userQuery[i].Operator,
+			userQuery[i].Value,
+			userQuery[i].Type,
+		)
+	}
 }
 
 func (ib *Table) Search(userQuery []Condition) error {
+	index, filter, indexType := ib.Choice(userQuery)
+	fmt.Println("index:", index)
+	fmt.Println("filter", filter)
+	fmt.Println("index", indexType)
 
 	return nil
 }

@@ -77,7 +77,7 @@ func (t *Thunder) Search(query []byte) error {
 
 		conditions = append(conditions, index.Condition{
 			Field:    string(Field),
-			Type:     Type,
+			Type:     string(Type),
 			Operator: Operator,
 			Value:    Value,
 		})
@@ -88,7 +88,6 @@ func (t *Thunder) Search(query []byte) error {
 
 func (t *Thunder) QueryParser(payload []byte) error {
 	command, args := findCommand(payload)
-
 	switch command {
 	case "CREATE_DATABASE":
 		return t.CreateDatabase(args)
