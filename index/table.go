@@ -43,6 +43,8 @@ func NewTable(columns []column.Column, index Index) (*Table, error) {
 		}
 	}
 
+	fmt.Println(index)
+
 	return &Table{
 		columns: columns,
 		index:   []Index{index},
@@ -78,6 +80,8 @@ func (ib *Table) Choice(userQuery []Condition) (Index, []func([]byte) bool, bool
 		}
 	}
 
+	//non-cluster index
+
 	if i != 0 {
 		filter := make([]func([]byte) bool, len(userQuery)-i)
 		CreateFilter(userQuery[i:], filter)
@@ -97,9 +101,8 @@ func (ib *Table) Choice(userQuery []Condition) (Index, []func([]byte) bool, bool
 	}
 
 	filter := make([]func([]byte) bool, len(userQuery))
-	fmt.Println(len(userQuery))
 	CreateFilter(userQuery, filter)
-	return clusterIndex, filter, true
+	return clusterIndex, filter, true //full scan
 }
 
 func CreateFilter(userQuery []Condition, filter []func([]byte) bool) {
@@ -113,10 +116,12 @@ func CreateFilter(userQuery []Condition, filter []func([]byte) bool) {
 }
 
 func (ib *Table) Search(userQuery []Condition) error {
-	index, filter, indexType := ib.Choice(userQuery)
-	fmt.Println("index:", index)
-	fmt.Println("filter", filter)
-	fmt.Println("index", indexType)
+	// fmt.Println(userQuery)
+
+	ib.Choice(userQuery)
+	// fmt.Println("index:", index)
+	// fmt.Println("filter", filter)
+	// fmt.Println("index", indexType)
 
 	return nil
 }

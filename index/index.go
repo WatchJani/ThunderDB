@@ -22,8 +22,7 @@ func (i *Index) GetColumnNumber() int {
 func New(byColumn ...string) Index {
 	return Index{
 		// name:  name,
-		index: b.New[int, int](5),
-		// byColumn: byColumn,
+		index:    b.New[int, int](5),
+		byColumn: byColumn,
 	}
 }
-
