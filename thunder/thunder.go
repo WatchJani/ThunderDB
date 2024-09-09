@@ -129,6 +129,7 @@ func (t *Thunder) CreateTable(tableQuery []byte) error {
 		tableInfo.Columns = append(tableInfo.Columns, column.New(colParts[0], colParts[1]))
 	}
 
+	//! set default cluster index
 	indexColumns := strings.Split(matches[4], ",")
 	for _, index := range indexColumns {
 		tableInfo.Indexes = append(tableInfo.Indexes, strings.TrimSpace(index))

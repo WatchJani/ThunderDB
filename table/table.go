@@ -28,21 +28,22 @@ func (t *Table) AddIndex(newIndex index.Index) error {
 	return fmt.Errorf("column %s not exist", newIndex.GetByColumn(0))
 }
 
+// !add default index if index not specified
 func NewTable(columns []column.Column, clusterIndex index.Index) (*Table, error) {
-	counter, i := 0, 0
-	for i < clusterIndex.LenByColumn() {
-		for _, column := range columns {
-			if clusterIndex.GetByColumn(i) == column.GetName() {
-				counter++
-				break
-			}
-		}
-		i++
+	// counter, i := 0, 0
+	// for i < clusterIndex.LenByColumn() {
+	// 	for _, column := range columns {
+	// 		if clusterIndex.GetByColumn(i) == column.GetName() {
+	// 			counter++
+	// 			break
+	// 		}
+	// 	}
+	// 	i++
 
-		if i != counter {
-			return nil, fmt.Errorf("index column field [%s] not exit", clusterIndex.GetByColumn(i))
-		}
-	}
+	// 	if i != counter {
+	// 		return nil, fmt.Errorf("index column field [%s] not exit", clusterIndex.GetByColumn(i))
+	// 	}
+	// }
 
 	return &Table{
 		columns: columns,
