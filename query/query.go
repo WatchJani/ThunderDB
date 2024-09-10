@@ -16,7 +16,7 @@ func CreateTable() []byte {
 // INSERT
 // INSERT database table 5janko221
 func Insert() []byte {
-	return []byte("INSERT Movies.Actor 00016123456789101112100011Maze runner0000220")
+	return []byte("INSERT Movies.Actor 00016123456789101112100011Maze runner0000220\n")
 }
 
 // SEARCH Database Table

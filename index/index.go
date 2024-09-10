@@ -36,3 +36,7 @@ func (i *Index) GetByColumn(index int) string {
 func (i *Index) LenByColumn() int {
 	return len(i.byColumn)
 }
+
+func (i *Index) Insert(key [][]byte, start int) {
+	i.index.Insert(key, start)
+}

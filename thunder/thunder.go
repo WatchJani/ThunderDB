@@ -82,14 +82,32 @@ func (t *Thunder) Insert(query []byte) error {
 		if err != nil {
 			return err
 		}
-		offset = append(offset, memTableOffset+index, memTableOffset+index+num)
+
+		start := memTableOffset + index
+		end := start + num
+
+		offset = append(offset, start, end)
 		// fmt.Println(column, string(conditionsPart[index:index+num]))
 		index += num
 	}
 
 	fmt.Println(offset)
 	fmt.Println(string(queryTable.GetData()))
-	//insert to all indexes
+
+	for _, index := range queryTable.GetIndex() {
+		key := make([][]byte, index.GetColumnNumber())
+
+		for j := 0; j < len(key); j++ {
+			position, err := queryTable.FindIndexColumn(index.GetByColumn(j))
+			if err != nil {
+				return err
+			}
+
+			key = append(key, queryTable.GetDataOnSpecificPosition(offset[position], offset[position+1]))
+		}
+
+		index.Insert(key, memTableOffset)
+	}
 
 	return nil
 }

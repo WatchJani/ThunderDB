@@ -158,3 +158,13 @@ func (ib *Table) Search(userQuery []Condition) error {
 func (ib *Table) Write(data []byte) int {
 	return ib.Insert(data)
 }
+
+func (t *Table) FindIndexColumn(name string) (int, error) {
+	for index, value := range t.columns {
+		if value.GetName() == name {
+			return index, nil
+		}
+	}
+
+	return -1, fmt.Errorf("cant find this key")
+}
