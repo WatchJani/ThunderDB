@@ -31,3 +31,30 @@ func BenchmarkSpeedReqHandle(b *testing.B) {
 		}
 	}
 }
+
+// 302 ns
+func BenchmarkInsertSpeedReq(b *testing.B) {
+	b.StopTimer()
+
+	thunder := New()
+
+	createDatabase := query.CreateDataBase()
+	if err := thunder.QueryParser(createDatabase); err != nil {
+		log.Println(err)
+	}
+
+	createTable := query.CreateTable()
+	if err := thunder.QueryParser(createTable); err != nil {
+		log.Println(err)
+	}
+
+	insertQuery := query.Insert()
+
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		if err := thunder.QueryParser(insertQuery); err != nil {
+			log.Println(err)
+		}
+	}
+}

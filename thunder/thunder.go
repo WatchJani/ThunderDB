@@ -64,9 +64,11 @@ func (t *Thunder) Insert(query []byte) error {
 	}
 
 	conditionsPart := parts[1]
-	fmt.Println(queryTable.GetColumn())
-	fmt.Println(queryTable.GetIndex())
-	fmt.Println(string(conditionsPart))
+	//copy data to memTable
+
+	// fmt.Println(queryTable.GetColumn())
+	// fmt.Println(queryTable.GetIndex())
+	// fmt.Println(string(conditionsPart))
 
 	offset := make([]int, 0, queryTable.GetColumnNum()*2)
 
@@ -80,12 +82,15 @@ func (t *Thunder) Insert(query []byte) error {
 			return err
 		}
 		offset = append(offset, index, index+num)
-		fmt.Println(column, string(conditionsPart[index:index+num]))
+		// fmt.Println(column, string(conditionsPart[index:index+num]))
+		_ = column
 		index += num
 	}
 
-	fmt.Println(offset)
+	// fmt.Println(offset)
 	//copy data to memtable
+
+	//insert to all indexes
 
 	return nil
 }
