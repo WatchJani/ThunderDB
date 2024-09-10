@@ -9,6 +9,7 @@ import (
 	"root/database"
 	"root/index"
 	"root/table"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -40,6 +41,52 @@ func (t *Thunder) CreateDatabase(name []byte) error {
 }
 
 func (t *Thunder) Insert(query []byte) error {
+	parts := bytes.SplitN(query, []byte(" "), 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("wrong query: %s", query)
+	}
+
+	dbTable := bytes.Split(parts[0], []byte("."))
+	if len(dbTable) != 2 {
+		return fmt.Errorf("wrong database name or table name: %s", parts[0])
+	}
+
+	database := string(dbTable[0])
+	queryDatabase, err := t.SelectDatabase(database)
+	if err != nil {
+		return err
+	}
+
+	tableReq := string(dbTable[1])
+	queryTable, err := queryDatabase.SelectTable(tableReq)
+	if err != nil {
+		return err
+	}
+
+	conditionsPart := parts[1]
+	fmt.Println(queryTable.GetColumn())
+	fmt.Println(queryTable.GetIndex())
+	fmt.Println(string(conditionsPart))
+
+	offset := make([]int, 0, queryTable.GetColumnNum()*2)
+
+	index := 0
+	for _, column := range queryTable.GetColumn() {
+		index += 5
+		size := conditionsPart[index-5 : index]
+
+		num, err := strconv.Atoi(string(size))
+		if err != nil {
+			return err
+		}
+		offset = append(offset, index, index+num)
+		fmt.Println(column, string(conditionsPart[index:index+num]))
+		index += num
+	}
+
+	fmt.Println(offset)
+	//copy data to memtable
+
 	return nil
 }
 

@@ -2,10 +2,8 @@ package skip_list
 
 import (
 	"bytes"
-	"cmp"
 	"fmt"
 	"math/rand/v2"
-	"strconv"
 	"sync"
 	"time"
 
@@ -23,10 +21,10 @@ type SkipList struct {
 	height     int
 
 	//If dataTYpe is int or float, then data will be searched different
-	dataType []string
+	// dataType []string
 }
 
-func New(height, capacity int, percentage float64, dataType []string) *SkipList {
+func New(height, capacity int, percentage float64) *SkipList {
 	//fix this part to be dynamic
 	stack := st.New[st.Stack[*Node]](250) // max number of parallel readings 250
 
@@ -49,7 +47,7 @@ func New(height, capacity int, percentage float64, dataType []string) *SkipList 
 		Pool:       pool.New[Node](capacity),
 		percentage: percentage,
 		height:     height,
-		dataType:   dataType,
+		// dataType:   dataType,
 	}
 }
 
@@ -84,17 +82,18 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 		stack = st.New[*Node](s.height)
 	}
 
-	index, compareFn := 0, GetCompareFuncType(s.dataType[0])
-
+	index := 0
+	// compareFn := GetCompareFuncType(s.dataType[index])
 	for {
 		for current.next != nil {
-			num := compareFn(current.next.key[index], key[index])
+			// num := compareFn(current.next.key[index], key[index])
+			num := bytes.Compare(current.next.key[index], key[index])
 			if num == -1 {
 				current = current.next
 			} else if num == 0 {
 				if index+1 < len(key) {
 					index++
-					compareFn = GetCompareFuncType(s.dataType[index])
+					// compareFn = GetCompareFuncType(s.dataType[index])
 				} else {
 					break // i found the key
 				}
@@ -118,11 +117,15 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 	current.next = node
 	*node = NewNode(nextNode, nil, value, key, true) // create new leaf node
 
-	for flipCoin(s.percentage) { //! fix this part, max height is 32
+	for flipCoin(s.percentage) {
 		downNode := node
 		leftNode, err := stack.Pop()
 
 		if err != nil {
+			if s.rootIndex+1 > s.height {
+				break
+			}
+
 			s.rootIndex++
 			leftNode = s.roots[s.rootIndex]
 		}
@@ -148,16 +151,19 @@ func (s *SkipList) Search(key [][]byte) (bool, int) {
 
 	current := s.roots[s.rootIndex]
 
-	index, compareFn := 0, GetCompareFuncType(s.dataType[0])
+	index := 0
+	// compareFn := GetCompareFuncType(s.dataType[index])
+
 	for {
 		for current.next != nil {
-			num := compareFn(current.next.key[index], key[index])
+			// num := compareFn(current.next.key[index], key[index])
+			num := bytes.Compare(current.next.key[index], key[index])
 			if num == -1 { // < n
 				current = current.next
 			} else if num == 0 { // == n
 				if index+1 < len(key) {
 					index++
-					compareFn = GetCompareFuncType(s.dataType[index])
+					// compareFn = GetCompareFuncType(s.dataType[index])
 				} else { // > n
 					return true, current.next.value
 				}
@@ -188,31 +194,31 @@ func (s *SkipList) Clear() {
 	s.Pool.Clear()
 }
 
-func CompareFloat(key, currentKey []byte) int {
-	keyFromString, _ := strconv.ParseFloat(string(key), 64)
-	currentKeyFromString, _ := strconv.ParseFloat(string(currentKey), 64)
+// func CompareFloat(key, currentKey []byte) int {
+// 	keyFromString, _ := strconv.ParseFloat(string(key), 64)
+// 	currentKeyFromString, _ := strconv.ParseFloat(string(currentKey), 64)
 
-	return cmp.Compare(keyFromString, currentKeyFromString)
-}
+// 	return cmp.Compare(keyFromString, currentKeyFromString)
+// }
 
-func CompareInt(key, currentKey []byte) int {
-	keyFromString, _ := strconv.Atoi(string(currentKey))
-	currentKeyFromString, _ := strconv.Atoi(string(currentKey))
+// func CompareInt(key, currentKey []byte) int {
+// 	keyFromString, _ := strconv.Atoi(string(currentKey))
+// 	currentKeyFromString, _ := strconv.Atoi(string(currentKey))
 
-	return cmp.Compare(keyFromString, currentKeyFromString)
-}
+// 	return cmp.Compare(keyFromString, currentKeyFromString)
+// }
 
-func CompareOtherType(key, currentKey []byte) int {
-	return bytes.Compare(key, currentKey)
-}
+// func CompareOtherType(key, currentKey []byte) int {
+// 	return bytes.Compare(key, currentKey)
+// }
 
-func GetCompareFuncType(dataType string) func([]byte, []byte) int {
-	switch dataType {
-	case "INT":
-		return CompareInt
-	case "FLOAT":
-		return CompareFloat
-	default:
-		return CompareOtherType
-	}
-}
+// func GetCompareFuncType(dataType string) func([]byte, []byte) int {
+// 	switch dataType {
+// 	case "INT":
+// 		return CompareInt
+// 	case "FLOAT":
+// 		return CompareFloat
+// 	default:
+// 		return CompareOtherType
+// 	}
+// }

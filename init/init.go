@@ -13,14 +13,19 @@ func init() {
 	if err := thunder.QueryParser(createDatabase); err != nil {
 		log.Println(err)
 	}
-	
+
 	createTable := query.CreateTable()
 	if err := thunder.QueryParser(createTable); err != nil {
 		log.Println(err)
 	}
 
-	searchQuery := query.Search()
-	if err := thunder.QueryParser(searchQuery); err != nil {
+	insertQuery := query.Insert()
+	if err := thunder.QueryParser(insertQuery); err != nil {
 		log.Println(err)
 	}
+
+	// searchQuery := query.Search()
+	// if err := thunder.QueryParser(searchQuery); err != nil {
+	// 	log.Println(err)
+	// }
 }

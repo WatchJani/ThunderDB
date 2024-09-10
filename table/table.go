@@ -16,6 +16,18 @@ type Table struct {
 	builder.Builder
 }
 
+func (t *Table) GetColumn() []column.Column {
+	return t.columns
+}
+
+func (t *Table) GetColumnNum() int {
+	return len(t.columns)
+}
+
+func (t *Table) GetIndex() []index.Index {
+	return t.index
+}
+
 // add secondary index
 func (t *Table) AddIndex(newIndex index.Index) error {
 	for _, index := range t.columns {

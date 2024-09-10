@@ -5,7 +5,7 @@ import (
 )
 
 func TestInsert(t *testing.T) {
-	skipList := New(32, 2000, 0.25, []string{"INT", "TEXT"})
+	skipList := New(32, 2000, 0.25)
 
 	// user_id	timestamp	event_type
 	key1 := [][]byte{[]byte("1"), []byte("2024-09-01 12:34:56"), []byte("login")}
@@ -25,7 +25,7 @@ func TestInsert(t *testing.T) {
 
 func Benchmark(b *testing.B) {
 	b.StopTimer()
-	skipList := New(32, 2000, 0.25, []string{"INT", "TEXT"})
+	skipList := New(32, 2000, 0.25)
 	key := [][]byte{[]byte("3")}
 	b.StartTimer()
 

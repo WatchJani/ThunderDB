@@ -1,12 +1,14 @@
 package index
 
-import b "github.com/WatchJani/BPlustTree/btree"
+import (
+	"root/skip_list"
+)
 
 type Index struct {
 	// name string //not important to much
 	size int
 	//menage
-	index    *b.Tree[int, int]
+	index    *skip_list.SkipList
 	byColumn []string // mene ne interesuje kolona vec key za search
 	//dodati sve kombinacije indexa tako da samo mogu da ih izbucem poslije :D [id, idname, idnameage] :DD
 }
@@ -22,7 +24,7 @@ func (i *Index) GetColumnNumber() int {
 func New(byColumn ...string) Index {
 	return Index{
 		// name:  name,
-		index:    b.New[int, int](5),
+		index:    skip_list.New(32, 60_000, 0.25),
 		byColumn: byColumn,
 	}
 }
