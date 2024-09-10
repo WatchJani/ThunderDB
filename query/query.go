@@ -24,3 +24,7 @@ func Insert() []byte {
 func Search() []byte {
 	return []byte("SEARCH Movies.Actor id (UUID) == 874123 name (TEXT) == Janko")
 }
+
+func Insert2() []byte {
+	return []byte("INSERT Movies.Actor 00016123456719101112100011More fnnner0000220\n")
+}

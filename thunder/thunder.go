@@ -91,11 +91,12 @@ func (t *Thunder) Insert(query []byte) error {
 		index += num
 	}
 
-	fmt.Println(offset)
+	// fmt.Println(offset)
 	fmt.Println(string(queryTable.GetData()))
 
+	//!ima bug negdje!!!
 	for _, index := range queryTable.GetIndex() {
-		key := make([][]byte, index.GetColumnNumber())
+		key := make([][]byte, 0, index.GetColumnNumber())
 
 		for j := 0; j < len(key); j++ {
 			position, err := queryTable.FindIndexColumn(index.GetByColumn(j))
@@ -103,7 +104,10 @@ func (t *Thunder) Insert(query []byte) error {
 				return err
 			}
 
-			key = append(key, queryTable.GetDataOnSpecificPosition(offset[position], offset[position+1]))
+			key = append(key, queryTable.GetDataOnSpecificPosition(
+				offset[position],
+				offset[position+1],
+			))
 		}
 
 		index.Insert(key, memTableOffset)

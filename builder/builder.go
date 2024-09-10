@@ -72,7 +72,7 @@ func (b *Builder) GetData() []byte {
 }
 
 func (b *Builder) IsEnoughSpace(data []byte) bool {
-	return cap(b.buf) < b.counter+len(data)
+	return cap(b.buf) > b.counter+len(data)
 }
 
 func (b *Builder) GetDataOnSpecificPosition(start, end int) []byte {

@@ -24,6 +24,11 @@ func init() {
 		log.Println(err)
 	}
 
+	insertQuery = query.Insert2()
+	if err := thunder.QueryParser(insertQuery); err != nil {
+		log.Println(err)
+	}
+
 	// searchQuery := query.Search()
 	// if err := thunder.QueryParser(searchQuery); err != nil {
 	// 	log.Println(err)
