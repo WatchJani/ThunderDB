@@ -6,6 +6,8 @@ import (
 	"root/column"
 	"root/index"
 	"root/query"
+
+	"github.com/WatchJani/stack"
 )
 
 const Cluster string = "cluster"
@@ -57,9 +59,24 @@ func NewTable(columns []column.Column, clusterIndex index.Index) (*Table, error)
 	// 	}
 	// }
 
+	// memTable := mem_table.New(8 * 1024 * 1024)
+	// memoryBlock, err := memTable.GetBlockMemory()
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+
+	stack := stack.New[[]byte](2) // create 2 * 8MB buffer for memTable
+	for range 2 {
+		stack.Push(make([]byte, 8*1024*104))
+	}
+
+	//!send stack to buffer
+	// go Cutter()
+
 	return &Table{
 		columns: columns,
 		index:   []index.Index{clusterIndex},
+		Builder: builder.New(&stack),
 	}, nil
 }
 
@@ -136,4 +153,8 @@ func (ib *Table) Search(userQuery []Condition) error {
 	// fmt.Println("index", indexType)
 
 	return nil
+}
+
+func (ib *Table) Write(data []byte) int {
+	return ib.Insert(data)
 }

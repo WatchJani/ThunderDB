@@ -64,16 +64,17 @@ func (t *Thunder) Insert(query []byte) error {
 	}
 
 	conditionsPart := parts[1]
-	//copy data to memTable
 
 	// fmt.Println(queryTable.GetColumn())
 	// fmt.Println(queryTable.GetIndex())
 	// fmt.Println(string(conditionsPart))
 
+	//copy data to memTable
+	memTableOffset := queryTable.Write(conditionsPart)
 	offset := make([]int, 0, queryTable.GetColumnNum()*2)
 
 	index := 0
-	for _, column := range queryTable.GetColumn() {
+	for range queryTable.GetColumn() {
 		index += 5
 		size := conditionsPart[index-5 : index]
 
@@ -81,15 +82,13 @@ func (t *Thunder) Insert(query []byte) error {
 		if err != nil {
 			return err
 		}
-		offset = append(offset, index, index+num)
+		offset = append(offset, memTableOffset+index, memTableOffset+index+num)
 		// fmt.Println(column, string(conditionsPart[index:index+num]))
-		_ = column
 		index += num
 	}
 
-	// fmt.Println(offset)
-	//copy data to memtable
-
+	fmt.Println(offset)
+	fmt.Println(string(queryTable.GetData()))
 	//insert to all indexes
 
 	return nil

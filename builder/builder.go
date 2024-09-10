@@ -1,16 +1,24 @@
 package builder
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/WatchJani/stack"
+)
 
 type Builder struct {
-	buf     []byte
+	buf []byte
+	*stack.Stack[[]byte]
 	counter int
 	sync.RWMutex
 }
 
-func New(buf []byte) Builder {
+func New(stack *stack.Stack[[]byte]) Builder {
+	buf, _ := stack.Pop()
+
 	return Builder{
-		buf: buf,
+		Stack: stack,
+		buf:   buf,
 	}
 }
 
@@ -19,23 +27,40 @@ func (b *Builder) Reset() {
 }
 
 // use for parallel writing in memory
-func (b *Builder) reservations(dataSize int) int {
-	b.Lock()
-	defer b.Unlock()
+// func (b *Builder) reservations(dataSize int) (int, bool) {
+// 	b.Lock()
+// 	defer b.Unlock()
 
-	currentOffset := b.counter
-	b.counter += dataSize
+// 	if !(cap(b.buf) < b.counter+dataSize) {
+// 		return -1, false
+// 	}
 
-	return currentOffset
+// 	currentOffset := b.counter
+// 	b.counter += dataSize
+
+// 	return currentOffset, true
+// }
+
+func (b *Builder) Insert(data []byte) int {
+	if !b.IsEnoughSpace(data) {
+		//send to cutter
+
+		newBuffer, _ := b.Pop()
+		b.buf = newBuffer
+
+		b.Reset()
+	}
+
+	offset := b.counter
+	copy(b.buf[offset:], data)
+	b.counter += len(data)
+
+	return offset
 }
 
-func (b *Builder) insert(data []byte, position int) {
-	copy(b.buf[position:], data)
-}
-
-func (b *Builder) ParallelWrite(data []byte) {
-	b.insert(data, b.reservations(len(data)))
-}
+// func (b *Builder) ParallelWrite(data []byte) (int, bool) {
+// 	return b.reservations(len(data))
+// }
 
 func (b *Builder) Write(data []byte) {
 	copy(b.buf[b.counter:], data)
