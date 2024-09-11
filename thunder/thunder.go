@@ -96,9 +96,12 @@ func (t *Thunder) Insert(query []byte) error {
 
 	//!ima bug negdje!!!
 	for _, index := range queryTable.GetIndex() {
-		key := make([][]byte, 0, index.GetColumnNumber())
 
-		for j := 0; j < len(key); j++ {
+		indexColumnNumber := index.GetColumnNumber()
+		key := make([][]byte, 0, indexColumnNumber)
+		
+		for j := 0; j < indexColumnNumber; j++ {
+
 			position, err := queryTable.FindIndexColumn(index.GetByColumn(j))
 			if err != nil {
 				return err
