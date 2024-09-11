@@ -28,3 +28,7 @@ func Search() []byte {
 func Insert2() []byte {
 	return []byte("INSERT Movies.Actor 00016123456719101112100011More fnnner0000220\n")
 }
+
+func NewIndex() []byte {
+	return []byte("INDEX Movies.Actor [age]")
+}

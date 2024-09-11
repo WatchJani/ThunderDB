@@ -1,8 +1,18 @@
 package index
 
-type NonCluster struct {
-	size int
+import (
+	"fmt"
+	t "root/b_plus_tree"
+)
 
+type Location struct {
+	offset   int
+	location byte
+}
+
+type NonCluster struct {
+	size     int
+	index    *t.Tree[Location]
 	byColumn []string
 }
 
@@ -11,5 +21,21 @@ func (n *NonCluster) Search() {
 }
 
 func (n *NonCluster) Insert() {
+	n.size++
+}
 
+func (n *NonCluster) GetByColumn(index int) string {
+	fmt.Println(n.byColumn)
+	return n.byColumn[index]
+}
+
+func (n *NonCluster) GetColumnNumber() int {
+	return len(n.byColumn)
+}
+
+func NewNonCluster(byColumn ...string) *NonCluster {
+	return &NonCluster{
+		index:    t.New[Location](100),
+		byColumn: byColumn,
+	}
 }
