@@ -18,9 +18,9 @@ func (c *Cluster) Search() {
 
 }
 
-func (c *Cluster) Insert(key [][]byte) {
+func (c *Cluster) Insert(key [][]byte, offset int) {
 	c.size++
-
+	c.memTableIndex.Insert(key, offset)
 }
 
 func (c *Cluster) GetIndexSize() int {
@@ -31,8 +31,8 @@ func (i *Cluster) GetColumnNumber() int {
 	return len(i.byColumn)
 }
 
-func NewClusterIndex(byColumn ...string) Cluster {
-	return Cluster{
+func NewClusterIndex(byColumn ...string) *Cluster {
+	return &Cluster{
 		// name:  name,
 		memTableIndex: skip_list.New(32, 60_000, 0.25),
 		byColumn:      byColumn,
@@ -46,7 +46,3 @@ func (i *Cluster) GetByColumn(index int) string {
 func (i *Cluster) LenByColumn() int {
 	return len(i.byColumn)
 }
-
-// func (i *Cluster) Insert(key [][]byte, start int) {
-// 	i.index.Insert(key, start)
-// }

@@ -208,7 +208,7 @@ func (t *Thunder) CreateTable(tableQuery []byte) error {
 		tableInfo.Indexes = append(tableInfo.Indexes, strings.TrimSpace(index))
 	}
 
-	return database.CreateTable(tableInfo.Table, tableInfo.Columns, index.New(tableInfo.Indexes...))
+	return database.CreateTable(tableInfo.Table, tableInfo.Columns, index.NewClusterIndex(tableInfo.Indexes...))
 }
 
 func findCommand(payload []byte) (string, []byte) {
