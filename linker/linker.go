@@ -24,6 +24,7 @@ func (l *Linker) Send(data []byte, index *skip_list.SkipList) {
 	}
 }
 
-func (l *Linker) Receiver() Payload {
-	return <-l.link
+func (l *Linker) Receiver() ([]byte, *skip_list.SkipList) {
+	d := <-l.link
+	return d.data, d.index
 }

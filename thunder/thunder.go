@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"regexp"
 	"root/column"
+	"root/cutter"
 	"root/database"
 	"root/index"
+	"root/linker"
 	"root/table"
 	"strconv"
 	"strings"
@@ -17,11 +19,17 @@ import (
 type Thunder struct {
 	thunder map[string]*database.Database
 	sync.RWMutex
+	linker.Linker
 }
 
 func New() *Thunder {
+	linker := linker.New()
+
+	go cutter.New(linker, "../store.bin", 10)
+
 	return &Thunder{
 		thunder: make(map[string]*database.Database),
+		Linker:  linker,
 	}
 }
 
