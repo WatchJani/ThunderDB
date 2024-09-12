@@ -9,8 +9,9 @@ type Linker struct {
 }
 
 type Payload struct {
-	data  []byte
-	index []index.Index
+	data       []byte
+	cluster    index.Cluster
+	nonCluster []index.NonCluster
 }
 
 func New() Linker {
@@ -19,14 +20,15 @@ func New() Linker {
 	}
 }
 
-func (l *Linker) Send(data []byte, index []index.Index) {
+func (l *Linker) Send(data []byte, cluster index.Cluster, nonCluster []index.NonCluster) {
 	l.link <- Payload{
-		data:  data,
-		index: index,
+		data:       data,
+		cluster:    cluster,
+		nonCluster: nonCluster,
 	}
 }
 
-func (l *Linker) Receiver() ([]byte, []index.Index) {
+func (l *Linker) Receiver() ([]byte, index.Cluster, []index.NonCluster) {
 	d := <-l.link
-	return d.data, d.index
+	return d.data, d.cluster, d.nonCluster
 }

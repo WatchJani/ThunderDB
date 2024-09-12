@@ -53,9 +53,8 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 
 func (c *Cutter) Cut() {
 	for {
-		// _, index := c.Receiver()
+		data, cluster, nonCluster := c.Receiver()
 
-		// start := index[0].RootNode()
 		// for node := start; node != nil; node = node.NextNode() {
 
 		// }
