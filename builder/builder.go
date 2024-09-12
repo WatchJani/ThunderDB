@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"root/linker"
 	"sync"
 
 	"github.com/WatchJani/stack"
@@ -11,6 +12,7 @@ type Builder struct {
 	*stack.Stack[[]byte]
 	counter int
 	sync.RWMutex
+	linker.Linker
 }
 
 func New(stack *stack.Stack[[]byte]) Builder {
@@ -44,6 +46,7 @@ func (b *Builder) Reset() {
 func (b *Builder) Insert(data []byte) int {
 	if !b.IsEnoughSpace(data) {
 		//send to cutter
+		// b.Linker.Send(data, )
 
 		newBuffer, _ := b.Pop()
 		b.buf = newBuffer

@@ -186,6 +186,18 @@ func (s *SkipList) Read() {
 	}
 }
 
+func (s *SkipList) RootNode() *Node {
+	return s.roots[0].next
+}
+
+func (s *Node) NextNode() *Node {
+	return s.next
+}
+
+func (n *Node) Key() [][]byte {
+	return n.key
+}
+
 func (s *SkipList) Clear() {
 	for index := range s.roots {
 		s.roots[index].next = nil

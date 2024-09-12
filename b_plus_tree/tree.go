@@ -464,6 +464,29 @@ func (t *Tree[V]) GetRoot() *Node[V] {
 	return t.root
 }
 
+func (t *Tree[V]) BetweenKey(key [][]byte) (V, error) {
+	next, index := t.root, 0
+	var closestValue V
+
+	if t.root.pointer == 0 {
+		return closestValue, fmt.Errorf("key %v not found and no suitable larger or smaller key exists", key)
+	}
+
+	var privies *Node[V]
+	for next != nil {
+		index, _ = next.search(key)
+		privies = next
+
+		next = next.Children[index]
+	}
+
+	if index > 0 {
+		index--
+	}
+
+	return privies.items[index].value, nil
+}
+
 // func (t *Tree[V]) RangeUp(source, destination [][]byte, command string) []item[V] {
 // 	var (
 // 		index   int

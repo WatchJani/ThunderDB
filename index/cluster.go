@@ -1,7 +1,6 @@
 package index
 
 import (
-	"fmt"
 	"root/skip_list"
 
 	t "root/b_plus_tree"
@@ -41,7 +40,7 @@ func NewClusterIndex(byColumn ...string) *Cluster {
 }
 
 func (i *Cluster) GetByColumn(index int) string {
-	fmt.Println(i.byColumn)
+	// fmt.Println(i.byColumn)
 	return i.byColumn[index]
 }
 

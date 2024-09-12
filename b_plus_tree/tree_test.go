@@ -1,5 +1,10 @@
 package BPTree
 
+import (
+	"fmt"
+	"testing"
+)
+
 // import (
 // 	"fmt"
 // 	"log"
@@ -140,3 +145,12 @@ package BPTree
 // 		tree.RangeUp(11, 21, "=>")
 // 	}
 // }
+
+func TestRangeKey(t *testing.T) {
+	tree := New[int](100)
+
+	tree.Insert([][]byte{[]byte("123")}, 1)
+	tree.Insert([][]byte{[]byte("654")}, 15)
+
+	fmt.Println(tree.Find([][]byte{[]byte("1")}))
+}

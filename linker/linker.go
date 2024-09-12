@@ -1,6 +1,8 @@
 package linker
 
-import "root/skip_list"
+import (
+	"root/index"
+)
 
 type Linker struct {
 	link chan Payload
@@ -8,7 +10,7 @@ type Linker struct {
 
 type Payload struct {
 	data  []byte
-	index *skip_list.SkipList
+	index []index.Index
 }
 
 func New() Linker {
@@ -17,14 +19,14 @@ func New() Linker {
 	}
 }
 
-func (l *Linker) Send(data []byte, index *skip_list.SkipList) {
+func (l *Linker) Send(data []byte, index []index.Index) {
 	l.link <- Payload{
 		data:  data,
 		index: index,
 	}
 }
 
-func (l *Linker) Receiver() ([]byte, *skip_list.SkipList) {
+func (l *Linker) Receiver() ([]byte, []index.Index) {
 	d := <-l.link
 	return d.data, d.index
 }

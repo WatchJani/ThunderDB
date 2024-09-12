@@ -5,10 +5,13 @@ import (
 	"root/linker"
 )
 
+//!linker mora imati []index
+
 type Cutter struct {
 	reader *os.File
 	linker.Linker
 	//stack - buffer za citanje
+	// stack.Stack[[]byte]
 	writeLink chan WriteLink
 }
 
@@ -29,7 +32,13 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 		files[index] = file
 	}
 
+	// stack := stack.New[[]byte](200)
+	// for range 200 {
+	// 	stack.Push(make([]byte, 4096))
+	// }
+
 	c := &Cutter{
+		// Stack:     stack,
 		reader:    files[0],
 		Linker:    linker,
 		writeLink: make(chan WriteLink),
@@ -44,7 +53,12 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 
 func (c *Cutter) Cut() {
 	for {
-		data, index := c.Receiver()
+		// _, index := c.Receiver()
+
+		// start := index[0].RootNode()
+		// for node := start; node != nil; node = node.NextNode() {
+
+		// }
 
 		//read
 
@@ -55,7 +69,7 @@ func (c *Cutter) Cut() {
 
 func (c *Cutter) Write(file *os.File) {
 	for {
-		data := <-c.writeLink
+		// data := <-c.writeLink
 
 		//
 	}
