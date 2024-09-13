@@ -198,6 +198,10 @@ func (n *Node) Key() [][]byte {
 	return n.key
 }
 
+func (n *Node) GetValue() int {
+	return n.value
+}
+
 func (s *SkipList) Clear() {
 	for index := range s.roots {
 		s.roots[index].next = nil

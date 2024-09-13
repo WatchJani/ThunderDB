@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"root/column"
 	"root/index"
 )
 
@@ -12,6 +13,7 @@ type Payload struct {
 	data       []byte
 	cluster    index.Cluster
 	nonCluster []index.NonCluster
+	columns    []column.Column
 }
 
 func New() Linker {
@@ -20,15 +22,16 @@ func New() Linker {
 	}
 }
 
-func (l *Linker) Send(data []byte, cluster index.Cluster, nonCluster []index.NonCluster) {
+func (l *Linker) Send(data []byte, cluster index.Cluster, nonCluster []index.NonCluster, columns []column.Column) {
 	l.link <- Payload{
 		data:       data,
 		cluster:    cluster,
 		nonCluster: nonCluster,
+		columns:    columns,
 	}
 }
 
-func (l *Linker) Receiver() ([]byte, index.Cluster, []index.NonCluster) {
+func (l *Linker) Receiver() ([]byte, index.Cluster, []index.NonCluster, []column.Column) {
 	d := <-l.link
-	return d.data, d.cluster, d.nonCluster
+	return d.data, d.cluster, d.nonCluster, d.columns
 }

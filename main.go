@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"root/cutter"
 	_ "root/init"
-
-	t "root/b_plus_tree"
 )
 
 func main() {
@@ -45,14 +44,20 @@ func main() {
 
 	//====================================================
 
-	tree := t.New[int](5)
+	// tree := t.New[int](5)
 
-	tree.Insert([][]byte{[]byte("005")}, 1)
-	tree.Insert([][]byte{[]byte("100")}, 2)
-	tree.Insert([][]byte{[]byte("153")}, 3)
-	tree.Insert([][]byte{[]byte("251")}, 4)
-	tree.Insert([][]byte{[]byte("357")}, 5)
-	tree.Insert([][]byte{[]byte("654")}, 6)
+	// tree.Insert([][]byte{[]byte("005")}, 1)
+	// tree.Insert([][]byte{[]byte("100")}, 2)
+	// tree.Insert([][]byte{[]byte("153")}, 3)
+	// tree.Insert([][]byte{[]byte("251")}, 4)
+	// tree.Insert([][]byte{[]byte("357")}, 5)
+	// tree.Insert([][]byte{[]byte("654")}, 6)
 
-	fmt.Println(tree.BetweenKey([][]byte{[]byte("099")}))
+	// fmt.Println(tree.BetweenKey([][]byte{[]byte("099")}))
+
+	// fmt.Println(len("00016123456719101112100011More fnnner0000220"))
+
+	data := []byte("0004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner0000220")
+
+	
 }

@@ -19,6 +19,10 @@ func Insert() []byte {
 	return []byte("INSERT Movies.Actor 00016123456789101112100011Maze runner0000220\n")
 }
 
+func InsertPro() []byte {
+	return []byte("INSERT Movies.Actor 0004400016123456789101112100011Maze runner0000220")
+}
+
 // SEARCH Database Table
 // name (TEXT) == "Janko" age (INT) >= 18
 func Search() []byte {

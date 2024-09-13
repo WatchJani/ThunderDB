@@ -18,6 +18,14 @@ func (c *Cluster) Search() {
 
 }
 
+func (c *Cluster) GetFileIndex() *t.Tree[int] {
+	return c.fileIndex
+}
+
+func (c *Cluster) GetMemTable() *skip_list.SkipList {
+	return c.memTableIndex
+}
+
 func (c *Cluster) Insert(key [][]byte, offset int) {
 	c.size++
 	c.memTableIndex.Insert(key, offset)

@@ -104,7 +104,6 @@ func (t *Thunder) Insert(query []byte) error {
 		key := make([][]byte, 0, indexColumnNumber)
 
 		for j := 0; j < indexColumnNumber; j++ {
-
 			position, err := queryTable.FindIndexColumn(index.GetByColumn(j))
 			if err != nil {
 				return err
