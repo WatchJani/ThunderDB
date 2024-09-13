@@ -43,7 +43,7 @@ func (t *Thunder) CreateDatabase(name []byte) error {
 		return fmt.Errorf("database [%s] is exist", name)
 	}
 
-	t.thunder[databaseName] = database.New(databaseName)
+	t.thunder[databaseName] = database.New(databaseName, t.Linker)
 	fmt.Printf("New database [%s] is created\n", name)
 	return nil
 }
@@ -95,7 +95,6 @@ func (t *Thunder) Insert(query []byte) error {
 		end := start + num
 
 		offset = append(offset, start, end)
-		// fmt.Println(column, string(conditionsPart[index:index+num]))
 		index += num
 	}
 
@@ -213,7 +212,7 @@ func (t *Thunder) CreateTable(tableQuery []byte) error {
 		tableInfo.Indexes = append(tableInfo.Indexes, strings.TrimSpace(index))
 	}
 
-	return database.CreateTable(tableInfo.Table, tableInfo.Columns, index.NewClusterIndex(tableInfo.Indexes...))
+	return database.CreateTable(tableInfo.Table, tableInfo.Columns, *index.NewClusterIndex(tableInfo.Indexes...))
 }
 
 func findCommand(payload []byte) (string, []byte) {

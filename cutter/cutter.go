@@ -1,7 +1,6 @@
 package cutter
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -18,6 +17,7 @@ type Cutter struct {
 	//stack - buffer za citanje
 	stack.Stack[[]byte]
 	writeLink chan WriteLink
+	chunk     int
 }
 
 type WriteLink struct {
@@ -37,8 +37,10 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 		files[index] = file
 	}
 
-	stack := stack.New[[]byte](1)
-	stack.Push(make([]byte, 4096*2))
+	stack := stack.New[[]byte](200)
+	for range 200 {
+		stack.Push(make([]byte, 4096))
+	}
 
 	c := &Cutter{
 		Stack:     stack,
@@ -56,93 +58,54 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 
 func (c *Cutter) Cut() {
 	for {
-		data, cluster, nonCluster, columnNames := c.Receiver()
-		// for node := start; node != nil; node = node.NextNode() {
+		data, _, _, _ := c.Receiver()
 
-		memTable, fileIndex := cluster.GetMemTable(), cluster.GetFileIndex()
+		// memTable, fileIndex := cluster.GetMemTable(), cluster.GetFileIndex()
 
-		buff, err := c.Stack.Pop()
+		offset, counter := 0, 0
+
+		stack, err := c.Stack.Pop()
 		if err != nil {
 			log.Println(err)
 		}
 
-		//I go through each node in the skip-list
-		for node := memTable.RootNode(); node != nil; node = node.NextNode() {
-			//get right chunk from file for insert node from skip list
-			chunk, err := fileIndex.BetweenKey(node.Key())
+		for offset < len(data) {
+			end, err := SizeOf(data, offset)
 			if err != nil {
 				log.Println(err)
 			}
 
-			//jump on chunk of file
-			_, err = c.reader.Seek(int64(chunk)*4096, 0)
-			if err != nil {
-				log.Fatal(err)
+			if end > 4096 {
+				c.writeLink <- WriteLink{
+					data:  data[:offset],
+					chunk: counter,
+				}
+				data = data[offset:]
+				c.chunk++
+				counter = 0
 			}
 
-			//read that chunk
-			n, err := c.reader.Read(buff[:4096])
-			if err != nil {
-				log.Println(err)
-			}
-
-			var (
-				counter          int
-				writeDataCounter = 4096
-			)
-
-			for counter < n {
-				maxSize, err := SizeOf(buff, counter) //read max size of single data
-				if err != nil {
-					log.Panic(err)
-				}
-
-				offset := make([]int, len(columnNames)*2)
-				if err := CreateOffsetData(buff[5:maxSize], offset, columnNames); err != nil { // parse single data to column
-					log.Println(err)
-				}
-
-				for index := 0; index < len(node.Key()); index++ {
-					position, err := FindIndexColumn(columnNames, cluster.GetByColumn(index))
-					if err != nil {
-						log.Println(err)
-					}
-
-					num := bytes.Compare(node.Key()[index], buff[position:position+1])
-					if num == -1 {
-						end, err := SizeOf(data, node.GetValue())
-						if err != nil {
-							log.Println(err)
-						}
-
-						copy(buff[writeDataCounter:], data[node.GetValue():end])
-						writeDataCounter += end - node.GetValue()
-
-						node = node.NextNode()
-					} else if num == 1 {
-						copy(buff[writeDataCounter:], buff[counter:maxSize])
-						writeDataCounter += maxSize - counter
-					}
-				}
-
-				counter += maxSize
-			}
+			copy(stack[counter:], data[offset:end])
+			counter += end - offset
+			offset = end
 		}
-
-		c.Stack.Push(buff)
 	}
 }
 
 func (c *Cutter) Write(file *os.File) {
 	for {
-		// data := <-c.writeLink
+		data := <-c.writeLink
 
-		//
+		_, err := file.Seek(int64(data.chunk)*4096, 0)
+		if err != nil {
+			log.Println(err)
+		}
+
+		if _, err := file.Write(data.data); err != nil {
+			log.Println(err)
+		}
 	}
 }
-
-// [][]byte
-//procitaj prvih 5bytova
 
 func SizeOf(data []byte, offset int) (int, error) {
 	num, err := strconv.Atoi(string(data[offset : offset+5]))

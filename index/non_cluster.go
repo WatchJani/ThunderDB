@@ -1,7 +1,6 @@
 package index
 
 import (
-	"fmt"
 	t "root/b_plus_tree"
 )
 
@@ -20,12 +19,11 @@ func (n *NonCluster) Search() {
 
 }
 
-func (n *NonCluster) Insert() {
+func (n *NonCluster) Insert(key [][]byte, offset int) {
 	n.size++
 }
 
 func (n *NonCluster) GetByColumn(index int) string {
-	fmt.Println(n.byColumn)
 	return n.byColumn[index]
 }
 

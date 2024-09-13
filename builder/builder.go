@@ -28,25 +28,10 @@ func (b *Builder) Reset() {
 	b.counter = 0
 }
 
-// use for parallel writing in memory
-// func (b *Builder) reservations(dataSize int) (int, bool) {
-// 	b.Lock()
-// 	defer b.Unlock()
-
-// 	if !(cap(b.buf) < b.counter+dataSize) {
-// 		return -1, false
-// 	}
-
-// 	currentOffset := b.counter
-// 	b.counter += dataSize
-
-// 	return currentOffset, true
-// }
-
 func (b *Builder) Insert(data []byte) int {
 	if !b.IsEnoughSpace(data) {
 		//send to cutter
-		// b.Linker.Send(data, )
+		// b.Linker.Send(data)
 
 		newBuffer, _ := b.Pop()
 		b.buf = newBuffer
@@ -60,10 +45,6 @@ func (b *Builder) Insert(data []byte) int {
 
 	return offset
 }
-
-// func (b *Builder) ParallelWrite(data []byte) (int, bool) {
-// 	return b.reservations(len(data))
-// }
 
 func (b *Builder) Write(data []byte) {
 	copy(b.buf[b.counter:], data)

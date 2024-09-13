@@ -2,20 +2,22 @@ package table
 
 import (
 	"fmt"
-	"root/builder"
 	"root/column"
 	"root/index"
+	"root/linker"
 	"root/query"
-
-	"github.com/WatchJani/stack"
 )
 
 const Cluster string = "cluster"
 
 type Table struct {
-	columns []column.Column
-	index   []index.Index
-	builder.Builder
+	columns    []column.Column
+	cluster    index.Cluster
+	nonCluster []index.NonCluster
+	linker.Linker
+	// builder.Builder
+	memTable []byte
+	counter  int
 }
 
 func (t *Table) GetColumn() []column.Column {
@@ -26,15 +28,15 @@ func (t *Table) GetColumnNum() int {
 	return len(t.columns)
 }
 
-func (t *Table) GetIndex() []index.Index {
-	return t.index
+func (t *Table) GetNonClusterIndex() []index.NonCluster {
+	return t.nonCluster
 }
 
 // add secondary index
-func (t *Table) AddIndex(newIndex index.Index) error {
+func (t *Table) AddIndex(newIndex index.NonCluster) error {
 	for _, index := range t.columns {
 		if index.GetName() == newIndex.GetByColumn(0) {
-			t.index = append(t.index, newIndex)
+			t.nonCluster = append(t.nonCluster, newIndex)
 			return nil
 		}
 	}
@@ -43,40 +45,12 @@ func (t *Table) AddIndex(newIndex index.Index) error {
 }
 
 // !add default index if index not specified
-func NewTable(columns []column.Column, clusterIndex index.Index) (*Table, error) {
-	// counter, i := 0, 0
-	// for i < clusterIndex.LenByColumn() {
-	// 	for _, column := range columns {
-	// 		if clusterIndex.GetByColumn(i) == column.GetName() {
-	// 			counter++
-	// 			break
-	// 		}
-	// 	}
-	// 	i++
-
-	// 	if i != counter {
-	// 		return nil, fmt.Errorf("index column field [%s] not exit", clusterIndex.GetByColumn(i))
-	// 	}
-	// }
-
-	// memTable := mem_table.New(8 * 1024 * 1024)
-	// memoryBlock, err := memTable.GetBlockMemory()
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
-	stack := stack.New[[]byte](2) // create 2 * 8MB buffer for memTable
-	for range 2 {
-		stack.Push(make([]byte, 8*1024*104))
-	}
-
-	//!send stack to buffer
-	// go Cutter()
-
+func NewTable(columns []column.Column, clusterIndex index.Cluster, linker linker.Linker) (*Table, error) {
 	return &Table{
 		columns: columns,
-		index:   []index.Index{clusterIndex},
-		Builder: builder.New(&stack),
+		cluster: clusterIndex,
+		// Builder:  builder.New(&stack),
+		memTable: make([]byte, 8*1024*1024),
 	}, nil
 }
 
@@ -92,7 +66,7 @@ func (ib *Table) Choice(userQuery []Condition) (index.Index, []func([]byte) bool
 	var i, j int
 
 	//check cluster index
-	clusterIndex := ib.index[0]
+	clusterIndex := ib.cluster
 	for i < clusterIndex.GetColumnNumber() && j < len(userQuery) {
 		for j < len(userQuery) {
 			if clusterIndex.GetByColumn(i) == userQuery[j].Field {
@@ -114,24 +88,24 @@ func (ib *Table) Choice(userQuery []Condition) (index.Index, []func([]byte) bool
 	if i != 0 {
 		filter := make([]func([]byte) bool, len(userQuery)-i)
 		CreateFilter(userQuery[i:], filter)
-		return clusterIndex, filter, false
+		return &clusterIndex, filter, false
 	}
 
 	//check non-cluster index
-	for i := 1; i < len(ib.index); i++ {
+	for i := 1; i < len(ib.nonCluster); i++ {
 		for j := 0; j < len(userQuery); j++ {
-			if ib.index[i].GetByColumn(0) == userQuery[j].Field {
+			if ib.nonCluster[i].GetByColumn(0) == userQuery[j].Field {
 
 				filter := make([]func([]byte) bool, len(userQuery)-1)
 				CreateFilter(userQuery[1:], filter)
-				return ib.index[i], filter, false
+				return &ib.nonCluster[i], filter, false
 			}
 		}
 	}
 
 	filter := make([]func([]byte) bool, len(userQuery))
 	CreateFilter(userQuery, filter)
-	return clusterIndex, filter, true //full scan
+	return &clusterIndex, filter, true //full scan
 }
 
 func CreateFilter(userQuery []Condition, filter []func([]byte) bool) {
@@ -144,10 +118,10 @@ func CreateFilter(userQuery []Condition, filter []func([]byte) bool) {
 	}
 }
 
-func (ib *Table) Search(userQuery []Condition) error {
+func (t *Table) Search(userQuery []Condition) error {
 	// fmt.Println(userQuery)
 
-	ib.Choice(userQuery)
+	t.Choice(userQuery)
 	// fmt.Println("index:", index)
 	// fmt.Println("filter", filter)
 	// fmt.Println("index", indexType)
@@ -155,8 +129,19 @@ func (ib *Table) Search(userQuery []Condition) error {
 	return nil
 }
 
-func (ib *Table) Write(data []byte) int {
-	return ib.Insert(data)
+func (t *Table) Write(data []byte) int {
+	if !t.IsEnoughSpace(data) {
+		//send to cutter
+		t.Linker.Send(t.memTable, t.cluster, t.nonCluster, t.columns)
+
+		t.memTable = make([]byte, 8*1024*1024)
+	}
+
+	offset := t.counter
+	copy(t.memTable[offset:], data)
+	t.counter += len(data)
+
+	return offset
 }
 
 func (t *Table) FindIndexColumn(name string) (int, error) {
@@ -167,4 +152,8 @@ func (t *Table) FindIndexColumn(name string) (int, error) {
 	}
 
 	return -1, fmt.Errorf("cant find this key")
+}
+
+func (b *Table) IsEnoughSpace(data []byte) bool {
+	return cap(b.memTable) > b.counter+len(data)
 }
