@@ -1,21 +1,17 @@
 package cutter
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"root/column"
 	"root/linker"
 	"strconv"
-
-	"github.com/WatchJani/stack"
+	"sync"
 )
 
 type Cutter struct {
-	reader *os.File
-	linker.Linker
-	//stack - buffer za citanje
-	stack.Stack[[]byte]
+	// reader *os.File
+	link linker.Linker
+	// stack.Stack[[]byte]
 	writeLink chan WriteLink
 	chunk     int
 }
@@ -23,13 +19,14 @@ type Cutter struct {
 type WriteLink struct {
 	data  []byte
 	chunk int
+	wg    *sync.WaitGroup
 }
 
 func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
-	files := make([]*os.File, numWorkers+1)
+	files := make([]*os.File, numWorkers)
 
 	for index := range files {
-		file, err := os.Open(path)
+		file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return nil, err
 		}
@@ -37,19 +34,13 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 		files[index] = file
 	}
 
-	stack := stack.New[[]byte](200)
-	for range 200 {
-		stack.Push(make([]byte, 4096))
-	}
-
 	c := &Cutter{
-		Stack:     stack,
-		reader:    files[0],
-		Linker:    linker,
+		// Stack:     stack,
+		link:      linker,
 		writeLink: make(chan WriteLink),
 	}
 
-	for index := range files[1:] {
+	for index := range files {
 		go c.Write(files[index])
 	}
 
@@ -58,37 +49,62 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 
 func (c *Cutter) Cut() {
 	for {
-		data, _, _, _ := c.Receiver()
+		data := <-c.link.Link
+		var wg sync.WaitGroup
 
-		// memTable, fileIndex := cluster.GetMemTable(), cluster.GetFileIndex()
+		stack := make([]byte, 4096)
 
 		offset, counter := 0, 0
-
-		stack, err := c.Stack.Pop()
-		if err != nil {
-			log.Println(err)
-		}
-
 		for offset < len(data) {
 			end, err := SizeOf(data, offset)
 			if err != nil {
 				log.Println(err)
 			}
 
+			if end > len(data) {
+				break
+			}
+
+			// singleData = append(singleData, data[offset+5:end])
+
 			if end > 4096 {
+				wg.Add(1)
 				c.writeLink <- WriteLink{
 					data:  data[:offset],
-					chunk: counter,
+					chunk: c.chunk,
+					wg:    &wg,
 				}
+
+				// clusterUpdate := singleData[0]
+				// clusterIndex.InsetInFile(IndexKey(tableColumn, &clusterIndex, clusterUpdate), c.chunk)
+
+				// for _, nonClusterIndex := range nonClusterIndex {
+				// 	for _, singleData := range singleData {
+				// 		nonClusterIndex.UpdateIndex(IndexKey(tableColumn, &clusterIndex, singleData), 0) //! ne smije biti 0 offset, promjeniti singleData u []int
+				// 	}
+				// }
+
 				data = data[offset:]
 				c.chunk++
-				counter = 0
+				offset, counter = 0, 0
+				continue
+				// singleData = singleData[:0] //reset all
 			}
 
 			copy(stack[counter:], data[offset:end])
 			counter += end - offset
 			offset = end
 		}
+
+		wg.Add(1)
+		c.writeLink <- WriteLink{
+			data:  data,
+			chunk: c.chunk,
+			wg:    &wg,
+		}
+		c.chunk++
+
+		wg.Wait()
 	}
 }
 
@@ -104,6 +120,8 @@ func (c *Cutter) Write(file *os.File) {
 		if _, err := file.Write(data.data); err != nil {
 			log.Println(err)
 		}
+
+		data.wg.Done()
 	}
 }
 
@@ -114,33 +132,4 @@ func SizeOf(data []byte, offset int) (int, error) {
 	}
 
 	return offset + num + 5, nil
-}
-
-func CreateOffsetData(data []byte, offset []int, queryTable []column.Column) error {
-	index := 0
-	for range queryTable {
-		index += 5
-		size := data[index-5 : index]
-
-		num, err := strconv.Atoi(string(size))
-		if err != nil {
-			return err
-		}
-
-		offset = append(offset, index, index+num)
-		// fmt.Println(column, string(conditionsPart[index:index+num]))
-		index += num
-	}
-
-	return nil
-}
-
-func FindIndexColumn(column []column.Column, name string) (int, error) {
-	for index, value := range column {
-		if value.GetName() == name {
-			return index, nil
-		}
-	}
-
-	return -1, fmt.Errorf("cant find this key")
 }

@@ -1,60 +1,61 @@
 package main
 
 import (
-	_ "root/init"
+	"log"
+	"root/query"
+	"root/thunder"
+	"time"
 )
 
+// type Node struct {
+// 	buff chan []byte
+// }
+
+// func (n *Node) Send(data []byte) {
+// 	n.buff <- data
+// }
+
+// func (n *Node) Receive() []byte {
+// 	return <-n.buff
+// }
+
+// func New() *Node {
+// 	return &Node{
+// 		buff: make(chan []byte),
+// 	}
+// }
+
+// func (n *Node) Reader() {
+// 	for {
+// 		data := n.Receive()
+// 		fmt.Println(data[:10])
+
+// 		time.Sleep(5 * time.Second)
+// 	}
+// }
+
 func main() {
-	// columns := []column.Column{
-	// 	column.New("id", "UUID"),
-	// 	column.New("name", "TEXT"),
-	// 	column.New("phone", "TEXT"),
-	// 	column.New("sex", "TEXT"),
-	// 	column.New("age", "int"),
+	// r := New()
+
+	// go r.Reader()
+
+	// for {
+	// 	buff := make([]byte, 100)
+	// 	r.Send(buff)
 	// }
 
-	// clusterIndex := index.New("cluster", "id", "age")
+	thunder := thunder.New()
+	if err := thunder.NewDatabase("netflix"); err != nil {
+		log.Println(err)
+	}
 
-	// IndexBuilder, err := index.NewIndexBuilder(columns, clusterIndex)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
+	if err := thunder.NewTable("netflix", "user"); err != nil {
+		log.Println(err)
+	}
 
-	// IndexBuilder.AddIndex(index.New("age", "age"))
+	for range 171197 * 2 {
+		thunder.Inset("netflix", "user", query.Insert()[20:])
+	}
 
-	// userField := []string{"age"}
-
-	// fmt.Println(IndexBuilder.Choice(userField))
-
-	//)====================================================0
-	// buf := make([]byte, 4096)
-
-	// builder := builder.New(buf)
-
-	// dataInsert := []byte("Janko")
-	// builder.ParallelWrite(dataInsert)
-
-	// dataInsert = []byte("Kondic")
-	// builder.ParallelWrite(dataInsert)
-
-	// fmt.Println(buf[:15])
-
-	//====================================================
-
-	// tree := t.New[int](5)
-
-	// tree.Insert([][]byte{[]byte("005")}, 1)
-	// tree.Insert([][]byte{[]byte("100")}, 2)
-	// tree.Insert([][]byte{[]byte("153")}, 3)
-	// tree.Insert([][]byte{[]byte("251")}, 4)
-	// tree.Insert([][]byte{[]byte("357")}, 5)
-	// tree.Insert([][]byte{[]byte("654")}, 6)
-
-	// fmt.Println(tree.BetweenKey([][]byte{[]byte("099")}))
-
-	// fmt.Println(len("00016123456719101112100011More fnnner0000220"))
-
-	// data := []byte("0004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner00002200004400016123456789101112100011Maze runner0000220")
-
+	time.Sleep(5 * time.Second)
 }
