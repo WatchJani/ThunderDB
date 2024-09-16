@@ -6,16 +6,19 @@ import (
 	"root/index"
 	"root/linker"
 	"root/manager"
+	"sync"
 )
 
 type Table struct {
 	linker.Linker
 	memTable []byte
 	counter  int
+
 	*manager.Manager
-	cluster    index.Cluster
-	nonCluster []index.NonCluster
-	columns    []column.Column
+	cluster    index.Cluster      //not finish
+	nonCluster []index.NonCluster //not finish
+	columns    []column.Column    //not finish
+	wg         sync.WaitGroup
 }
 
 func New(linker linker.Linker, reader *os.File) (*Table, error) {
@@ -35,7 +38,17 @@ func New(linker linker.Linker, reader *os.File) (*Table, error) {
 
 func (t *Table) Insert(data []byte) int {
 	if !t.IsEnoughSpace(data) {
-		t.Link <- t.memTable[:t.counter]
+		//If my cutter is slower than filling up the entire buffer,
+		//then the data prepared for sending to the cutter will be overwritten.
+		//Since the cutter is slower, it won't know that new data has been
+		//placed in the same location and will simply report the value as nil.
+		//Because of this, I need to wait for my cutter to finish, confirm that
+		//the buffer is nil, and only then can I assign a new value to that buffer.
+
+		t.wg.Wait()
+		t.wg.Add(1)
+		t.SetOld(t.memTable) //set to manager to old
+		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg)
 
 		t.memTable = make([]byte, 8*1024*1024)
 		t.counter = 0

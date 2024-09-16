@@ -35,14 +35,6 @@ import (
 // }
 
 func main() {
-	// r := New()
-
-	// go r.Reader()
-
-	// for {
-	// 	buff := make([]byte, 100)
-	// 	r.Send(buff)
-	// }
 
 	thunder := thunder.New()
 	if err := thunder.NewDatabase("netflix"); err != nil {
@@ -58,4 +50,5 @@ func main() {
 	}
 
 	time.Sleep(5 * time.Second)
+
 }

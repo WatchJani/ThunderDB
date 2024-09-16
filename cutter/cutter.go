@@ -49,8 +49,10 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 
 func (c *Cutter) Cut() {
 	for {
-		data := <-c.link.Link
+		dataBlock, size, tableWg := c.link.Receive()
 		var wg sync.WaitGroup
+
+		data := (*dataBlock)[:size]
 
 		stack := make([]byte, 4096)
 
@@ -85,6 +87,7 @@ func (c *Cutter) Cut() {
 				// }
 
 				data = data[offset:]
+
 				c.chunk++
 				offset, counter = 0, 0
 				continue
@@ -105,6 +108,9 @@ func (c *Cutter) Cut() {
 		c.chunk++
 
 		wg.Wait()
+
+		*dataBlock = nil
+		tableWg.Done()
 	}
 }
 
