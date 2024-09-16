@@ -2,7 +2,6 @@ package thunder
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"root/column"
 	"root/cutter"
@@ -39,11 +38,14 @@ func (t *Thunder) NewDatabase(name string) error {
 
 func (t *Thunder) NewTable(databaseName, tableName string, columns []column.Column) error {
 	database := t.database[databaseName]
+	return database.CreateTable(tableName, columns)
+}
 
-	err := database.CreateTable(tableName, columns)
-	fmt.Printf("Table %s is created\n", tableName)
+func (t *Thunder) NewIndex(databaseName, tableName string, columns []string) error {
+	database := t.database[databaseName]
+	table := database.GetTable(tableName)
 
-	return err
+	return table.NewIndex(columns...)
 }
 
 func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
@@ -66,6 +68,8 @@ func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
 		return t.CreateTable(args)
 	case "INSERT":
 		return t.CreateInsert(args)
+	case "INDEX":
+		return t.CreateIndex(args)
 	// case "SEARCH":
 	// return t.Search(args)
 	default:
@@ -74,10 +78,7 @@ func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
 }
 
 func (t *Thunder) CreateDatabase(args []byte) ([]byte, error) {
-	err := t.NewDatabase(string(args))
-	fmt.Printf("Database %s is created\n", args)
-
-	return nil, err
+	return nil, t.NewDatabase(string(args))
 }
 
 func (t *Thunder) CreateTable(args []byte) ([]byte, error) {
@@ -106,6 +107,15 @@ func (t *Thunder) CreateInsert(args []byte) ([]byte, error) {
 	}
 
 	t.InsetData(store[0], store[1][1:], args[1:])
+
+	return nil, nil
+}
+
+func (t *Thunder) CreateIndex(args []byte) ([]byte, error) {
+	token := strings.Split(string(args), " ")
+	database, table := database.ParseDatabaseTable(token[0])
+
+	t.NewIndex(database, table, token[1:])
 
 	return nil, nil
 }

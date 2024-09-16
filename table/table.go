@@ -1,6 +1,7 @@
 package table
 
 import (
+	"fmt"
 	"os"
 	"root/column"
 	"root/index"
@@ -16,9 +17,38 @@ type Table struct {
 
 	*manager.Manager
 	cluster    *index.Cluster
-	nonCluster []index.NonCluster
+	nonCluster []*index.NonCluster
 	columns    []column.Column
 	wg         sync.WaitGroup
+}
+
+func containsAll(slice1 []column.Column, slice2 []string) (string, bool) {
+	for _, str1 := range slice1 {
+		found := false
+		for _, str2 := range slice2 {
+			if str1.GetName() == str2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return str1.GetName(), false
+		}
+	}
+	return "", true
+}
+
+func (t *Table) NewIndex(columns ...string) error {
+	if len(columns) < 1 {
+		return fmt.Errorf("is not log to much")
+	}
+
+	if column, ok := containsAll(t.columns, columns); !ok {
+		return fmt.Errorf("column %s is not founded", column)
+	}
+
+	t.nonCluster = append(t.nonCluster, index.NewNonCluster(t.Manager, columns...))
+	return nil
 }
 
 func New(columns []column.Column, linker linker.Linker, reader *os.File) (*Table, error) {
@@ -33,6 +63,7 @@ func New(columns []column.Column, linker linker.Linker, reader *os.File) (*Table
 		memTable: memTable,
 		Linker:   linker,
 		Manager:  manager,
+		columns:  columns,
 		cluster:  index.NewClusterIndex(manager),
 	}, nil
 }
