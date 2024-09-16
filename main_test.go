@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"root/column"
 	"root/query"
 	"root/thunder"
 	"testing"
@@ -12,17 +11,28 @@ func BenchmarkInsertSpeed(b *testing.B) {
 	b.StopTimer()
 
 	thunder := thunder.New()
-	if err := thunder.NewDatabase("netflix"); err != nil {
+
+	if _, err := thunder.QueryParser(query.CreateDataBase()); err != nil {
 		log.Println(err)
+		return
 	}
 
-	if err := thunder.NewTable("netflix", "user", []column.Column{}); err != nil {
+	if _, err := thunder.QueryParser(query.CreateTable()); err != nil {
 		log.Println(err)
+		return
+	}
+
+	if _, err := thunder.QueryParser(query.NewIndex()); err != nil {
+		log.Println(err)
+		return
 	}
 
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		thunder.InsetData("netflix", "user", query.Insert()[20:])
+		if _, err := thunder.QueryParser(query.Insert()); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
