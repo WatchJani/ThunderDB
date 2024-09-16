@@ -46,11 +46,15 @@ func (t *Thunder) NewTable(databaseName, tableName string, columns []column.Colu
 	return err
 }
 
-func (t *Thunder) Inset(databaseName, tableName string, data []byte) {
+func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 	database := t.database[databaseName]
 	table := database.GetTable(tableName)
 
-	table.Insert(data)
+	memTableOffset := table.Insert(data) //write data to memTable or send on disk
+
+	//update nonClusterIndex
+
+	_ = memTableOffset
 }
 
 func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
@@ -60,8 +64,8 @@ func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
 		return t.CreateDatabase(args)
 	case "CREATE_TABLE":
 		return t.CreateTable(args)
-	// case "INSERT":
-	// 	// return t.Insert(args)
+	case "INSERT":
+		return t.CreateInsert(args)
 	// case "SEARCH":
 	// return t.Search(args)
 	default:
@@ -81,6 +85,27 @@ func (t *Thunder) CreateTable(args []byte) ([]byte, error) {
 
 	database, table := database.ParseDatabaseTable(token[0])
 	t.NewTable(database, table, column.CreateColumn(token[1:]))
+
+	return nil, nil
+}
+
+// not secure
+func (t *Thunder) CreateInsert(args []byte) ([]byte, error) {
+	si, store := []byte{'.', ' '}, make([]string, 2)
+
+	for index, siCounter := 0, 0; index < len(args); index++ {
+		if args[index] == si[siCounter] {
+			store[siCounter] = string(args[:index])
+			args, index = args[index:], 0
+			siCounter++
+
+			if args[index] == ' ' {
+				break
+			}
+		}
+	}
+
+	t.InsetData(store[0], store[1][1:], args[1:])
 
 	return nil, nil
 }

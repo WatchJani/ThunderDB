@@ -23,6 +23,6 @@ func BenchmarkInsertSpeed(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		thunder.Inset("netflix", "user", query.Insert()[20:])
+		thunder.InsetData("netflix", "user", query.Insert()[20:])
 	}
 }

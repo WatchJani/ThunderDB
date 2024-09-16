@@ -12,3 +12,7 @@ func CreateDataBase() []byte {
 func CreateTable() []byte {
 	return []byte("CREATE_TABLE Movies.Actor name TEXT age INT")
 }
+
+func NewIndex() []byte {
+	return []byte("INDEX Movies.Actor name age")
+}
