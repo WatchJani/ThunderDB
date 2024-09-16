@@ -29,7 +29,6 @@ func main() {
 		log.Println(err)
 		return
 	}
-
 	fmt.Println("index is added")
 
 	if _, err := thunder.QueryParser(query.Insert()); err != nil {

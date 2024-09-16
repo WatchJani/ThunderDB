@@ -28,3 +28,7 @@ func (c *Cluster) Insert(key [][]byte, offset int) {
 	c.size++
 	c.memTableIndex.Insert(key, offset)
 }
+
+func (c *Cluster) GetByColumn() []string {
+	return []string{c.byColumn}
+}

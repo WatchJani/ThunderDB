@@ -54,9 +54,20 @@ func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 
 	memTableOffset := table.Insert(data) //write data to memTable or send on disk
 
-	//update nonClusterIndex
+	columnData, err := table.ReadSingleData(data[5:])
+	if err != nil {
+		log.Println(err)
+	}
 
-	_ = memTableOffset
+	for _, index := range table.GetIndexes() {
+		indexColumn := index.GetByColumn()
+		key := make([][]byte, len(indexColumn))
+		for index, column := range indexColumn {
+			key[index] = columnData[table.GetColumnNameIndex(column)]
+		}
+
+		index.Insert(key, memTableOffset)
+	}
 }
 
 func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
@@ -96,9 +107,7 @@ func (t *Thunder) CreateInsert(args []byte) ([]byte, error) {
 
 	for index, siCounter := 0, 0; index < len(args); index++ {
 		if args[index] == si[siCounter] {
-			store[siCounter] = string(args[:index])
-			args, index = args[index:], 0
-			siCounter++
+			store[siCounter], args, index, siCounter = string(args[:index]), args[index:], 0, siCounter+1
 
 			if args[index] == ' ' {
 				break
@@ -115,9 +124,7 @@ func (t *Thunder) CreateIndex(args []byte) ([]byte, error) {
 	token := strings.Split(string(args), " ")
 	database, table := database.ParseDatabaseTable(token[0])
 
-	t.NewIndex(database, table, token[1:])
-
-	return nil, nil
+	return nil, t.NewIndex(database, table, token[1:])
 }
 
 func findCommand(payload []byte) (string, []byte) {

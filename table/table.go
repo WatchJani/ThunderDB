@@ -7,6 +7,7 @@ import (
 	"root/index"
 	"root/linker"
 	"root/manager"
+	"strconv"
 	"sync"
 )
 
@@ -23,16 +24,16 @@ type Table struct {
 }
 
 func containsAll(slice1 []column.Column, slice2 []string) (string, bool) {
-	for _, str1 := range slice1 {
+	for _, str1 := range slice2 {
 		found := false
-		for _, str2 := range slice2 {
-			if str1.GetName() == str2 {
+		for _, str2 := range slice1 {
+			if str1 == str2.GetName() {
 				found = true
 				break
 			}
 		}
 		if !found {
-			return str1.GetName(), false
+			return str1, false
 		}
 	}
 	return "", true
@@ -48,6 +49,7 @@ func (t *Table) NewIndex(columns ...string) error {
 	}
 
 	t.nonCluster = append(t.nonCluster, index.NewNonCluster(t.Manager, columns...))
+
 	return nil
 }
 
@@ -95,4 +97,46 @@ func (t *Table) Insert(data []byte) int {
 
 func (t *Table) IsEnoughSpace(data []byte) bool {
 	return cap(t.memTable) > t.counter+len(data)
+}
+
+func (t *Table) ReadSingleData(data []byte) ([][]byte, error) {
+	columnData := make([][]byte, len(t.columns))
+
+	index := 0
+	for i := range t.columns {
+		index += 5
+		size := data[index-5 : index]
+
+		num, err := strconv.Atoi(string(size))
+		if err != nil {
+			return columnData, err
+		}
+
+		end := index + num
+		columnData[i] = data[index:end]
+		index += num
+	}
+
+	return columnData, nil
+}
+
+func (t *Table) GetColumnNameIndex(name string) int {
+	for index, column := range t.columns {
+		if column.GetName() == name {
+			return index
+		}
+	}
+
+	return -1
+}
+
+func (t *Table) GetIndexes() []index.Index {
+	index := make([]index.Index, len(t.nonCluster)+1)
+	index[0] = t.cluster
+
+	for i := 1; i < len(index); i++ {
+		index[i] = t.nonCluster[i-1]
+	}
+
+	return index
 }

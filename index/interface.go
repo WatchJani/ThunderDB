@@ -1,6 +1,6 @@
 package index
 
-
-type Index interface{
-	
+type Index interface {
+	Insert([][]byte, int)
+	GetByColumn() []string
 }

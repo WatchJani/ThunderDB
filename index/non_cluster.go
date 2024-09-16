@@ -24,3 +24,15 @@ func NewNonCluster(manager *manager.Manager, byColumn ...string) *NonCluster {
 		Manager:  manager,
 	}
 }
+
+func (c *NonCluster) Insert(key [][]byte, offset int) {
+	c.size++
+	c.index.Insert(key, Location{
+		offset:   offset,
+		location: 'm',
+	})
+}
+
+func (c *NonCluster) GetByColumn() []string {
+	return c.byColumn
+}
