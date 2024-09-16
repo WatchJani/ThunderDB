@@ -7,47 +7,26 @@ import (
 	"time"
 )
 
-// type Node struct {
-// 	buff chan []byte
-// }
-
-// func (n *Node) Send(data []byte) {
-// 	n.buff <- data
-// }
-
-// func (n *Node) Receive() []byte {
-// 	return <-n.buff
-// }
-
-// func New() *Node {
-// 	return &Node{
-// 		buff: make(chan []byte),
-// 	}
-// }
-
-// func (n *Node) Reader() {
-// 	for {
-// 		data := n.Receive()
-// 		fmt.Println(data[:10])
-
-// 		time.Sleep(5 * time.Second)
-// 	}
-// }
-
 func main() {
-
 	thunder := thunder.New()
-	if err := thunder.NewDatabase("netflix"); err != nil {
+
+	if _, err := thunder.QueryParser(query.CreateDataBase()); err != nil {
 		log.Println(err)
+		return
 	}
 
-	if err := thunder.NewTable("netflix", "user"); err != nil {
+	if _, err := thunder.QueryParser(query.CreateTable()); err != nil {
 		log.Println(err)
+		return
 	}
 
-	for range 171197 * 2 {
-		thunder.Inset("netflix", "user", query.Insert()[20:])
-	}
+	// if err := thunder.NewTable("netflix", "user", []column.Column{}); err != nil {
+	// 	log.Println(err)
+	// }
+
+	// for range 171197 * 2 {
+	// 	thunder.Inset("netflix", "user", query.Insert()[20:])
+	// }
 
 	time.Sleep(5 * time.Second)
 

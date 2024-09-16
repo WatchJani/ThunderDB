@@ -15,13 +15,13 @@ type Table struct {
 	counter  int
 
 	*manager.Manager
-	cluster    index.Cluster      //not finish
-	nonCluster []index.NonCluster //not finish
-	columns    []column.Column    //not finish
+	cluster    *index.Cluster
+	nonCluster []index.NonCluster
+	columns    []column.Column
 	wg         sync.WaitGroup
 }
 
-func New(linker linker.Linker, reader *os.File) (*Table, error) {
+func New(columns []column.Column, linker linker.Linker, reader *os.File) (*Table, error) {
 	memTable := make([]byte, 8*1024*1024)
 
 	manager, err := manager.New(memTable, reader)
@@ -33,12 +33,13 @@ func New(linker linker.Linker, reader *os.File) (*Table, error) {
 		memTable: memTable,
 		Linker:   linker,
 		Manager:  manager,
+		cluster:  index.NewClusterIndex(manager),
 	}, nil
 }
 
 func (t *Table) Insert(data []byte) int {
 	if !t.IsEnoughSpace(data) {
-		//If my cutter is slower than filling up the entire buffer,
+		//If my cutter is slower than filling up the entire buffer (memTable),
 		//then the data prepared for sending to the cutter will be overwritten.
 		//Since the cutter is slower, it won't know that new data has been
 		//placed in the same location and will simply report the value as nil.

@@ -3,8 +3,10 @@ package database
 import (
 	"log"
 	"os"
+	"root/column"
 	"root/linker"
 	"root/table"
+	"strings"
 )
 
 type Database struct {
@@ -19,13 +21,13 @@ func New(linker linker.Linker) *Database {
 	}
 }
 
-func (db *Database) CreateTable(tableName string) error {
+func (db *Database) CreateTable(tableName string, columns []column.Column) error {
 	file, err := os.OpenFile("/home/janko/Desktop/chanel23l/store.bin", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println(err)
 	}
 
-	table, err := table.New(db.Linker, file)
+	table, err := table.New(columns, db.Linker, file)
 	if err != nil {
 		return err
 	}
@@ -37,4 +39,10 @@ func (db *Database) CreateTable(tableName string) error {
 
 func (db *Database) GetTable(tableName string) *table.Table {
 	return db.table[tableName]
+}
+
+func ParseDatabaseTable(token string) (string, string) {
+	r := strings.Split(token, ".")
+
+	return r[0], r[1]
 }
