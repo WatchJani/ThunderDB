@@ -8,6 +8,7 @@ import (
 	"root/column"
 	"root/cutter"
 	"root/database"
+	"root/filter"
 	"root/linker"
 	"root/table"
 	"strings"
@@ -67,7 +68,31 @@ func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 	}
 }
 
+type FilterField struct {
+	filter filter.Filter
+	field  string
+}
+
 func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte, error) {
+	database := t.database[databaseName]
+	tableProcess := database.GetTable(tableName)
+
+	dataSize := len(data)
+	if dataSize%3 != 0 {
+		return data[0], fmt.Errorf("wrong input")
+	}
+
+	filterField := make([]FilterField, dataSize/3)
+	for columnIndex, dataIndex := 0, 0; dataIndex < len(data); dataIndex, columnIndex = dataIndex+3, columnIndex+1 {
+		filterField[columnIndex] = FilterField{
+			filter: filter.GenerateFilter(data[dataIndex+1], data[dataIndex+2]),
+			field:  string(data[dataIndex]),
+		}
+	}
+
+	//filter with column
+	fmt.Println(filterField)
+	_ = tableProcess
 
 	return []byte{}, nil
 }

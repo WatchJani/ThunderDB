@@ -1,6 +1,8 @@
 package filter
 
-import "bytes"
+import (
+	"bytes"
+)
 
 type Filter func([]byte) bool
 
