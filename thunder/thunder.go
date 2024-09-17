@@ -1,7 +1,9 @@
 package thunder
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"root/column"
 	"root/cutter"
@@ -54,7 +56,6 @@ func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 	tableProcess := database.GetTable(tableName)
 
 	memTableOffset := tableProcess.Insert(data) //write data to memTable or send on disk
-
 	columnData, err := tableProcess.ReadSingleData(data[5:])
 	if err != nil {
 		log.Println(err)
@@ -64,6 +65,11 @@ func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 		key := table.GenerateKey(index, columnData, tableProcess.GetColumns())
 		index.Insert(key, memTableOffset)
 	}
+}
+
+func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte, error) {
+
+	return []byte{}, nil
 }
 
 func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
@@ -77,8 +83,8 @@ func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
 		return t.CreateInsert(args)
 	case "INDEX":
 		return t.CreateIndex(args)
-	// case "SEARCH":
-	// return t.Search(args)
+	case "SEARCH":
+		return t.CreateSearch(args)
 	default:
 		return nil, errors.New("command is not exist")
 	}
@@ -86,6 +92,11 @@ func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
 
 func (t *Thunder) CreateDatabase(args []byte) ([]byte, error) {
 	return nil, t.NewDatabase(string(args))
+}
+
+func (t *Thunder) CreateSearch(args []byte) ([]byte, error) {
+	token := bytes.Split(args, []byte{' '})
+	return t.Search(string(token[0]), string(token[1]), token[2:])
 }
 
 func (t *Thunder) CreateTable(args []byte) ([]byte, error) {
@@ -97,21 +108,21 @@ func (t *Thunder) CreateTable(args []byte) ([]byte, error) {
 	return nil, nil
 }
 
-// not secure
 func (t *Thunder) CreateInsert(args []byte) ([]byte, error) {
-	si, store := []byte{'.', ' '}, make([]string, 2)
+	token := make([][]byte, 0, 3)
 
-	for index, siCounter := 0, 0; index < len(args); index++ {
-		if args[index] == si[siCounter] {
-			store[siCounter], args, index, siCounter = string(args[:index]), args[index:], 0, siCounter+1
-
-			if args[index] == ' ' {
-				break
-			}
+	for index, prevues := 0, 0; index < len(args); index++ {
+		if args[index] == ' ' {
+			token = append(token, args[prevues:index])
+			prevues = index + 1
 		}
 	}
 
-	t.InsetData(store[0], store[1][1:], args[1:])
+	if len(token) < 3 {
+		return args, fmt.Errorf("wrong query input")
+	}
+
+	t.InsetData(string(token[0]), string(token[1]), token[2])
 
 	return nil, nil
 }

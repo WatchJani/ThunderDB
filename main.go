@@ -25,20 +25,15 @@ func main() {
 		return
 	}
 
-	for range 171197 {
-		if _, err := thunder.QueryParser(query.Insert()); err != nil {
-			log.Println(err)
-			return
-		}
+	if _, err := thunder.QueryParser(query.Insert()); err != nil {
+		log.Println(err)
+		return
 	}
 
-	// if err := thunder.NewTable("netflix", "user", []column.Column{}); err != nil {
-	// 	log.Println(err)
-	// }
-
-	// for range 171197 * 2 {
-	// 	thunder.Inset("netflix", "user", query.Insert()[20:])
-	// }
+	if _, err := thunder.QueryParser(query.Search()); err != nil {
+		log.Println(err)
+		return
+	}
 
 	time.Sleep(5 * time.Second)
 }

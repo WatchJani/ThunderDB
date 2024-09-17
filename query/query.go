@@ -1,7 +1,7 @@
 package query
 
 func Insert() []byte {
-	return []byte("INSERT Movies.Actor 0004400016123456789101112100011Maze runner0000220")
+	return []byte("INSERT Movies Actor 0004400016123456789101112100011Maze runner0000220")
 }
 
 func CreateDataBase() []byte {
@@ -15,4 +15,8 @@ func CreateTable() []byte {
 
 func NewIndex() []byte {
 	return []byte("INDEX Movies.Actor name age")
+}
+
+func Search() []byte {
+	return []byte("SEARCH Movies Actor id == 874123 name == Janko")
 }
