@@ -10,9 +10,7 @@ import (
 )
 
 type Cutter struct {
-	// reader *os.File
-	link linker.Linker
-	// stack.Stack[[]byte]
+	link      linker.Linker
 	writeLink chan WriteLink
 	chunk     int
 }
@@ -36,7 +34,6 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 	}
 
 	c := &Cutter{
-		// Stack:     stack,
 		link:      linker,
 		writeLink: make(chan WriteLink),
 	}
@@ -80,8 +77,10 @@ func (c *Cutter) Cut() {
 
 				for _, nonClusterIndex := range nonCluster { // update all nonCluster key
 					for sdIndex := 0; sdIndex < len(singleData); sdIndex += 2 { // update all data index for one single chunk (block file)
-						columnData, _ := table.ReadSingleData(data[singleData[sdIndex]+5:singleData[sdIndex+1]], columns)
-						nonClusterIndex.UpdateIndex(table.GenerateKey(nonClusterIndex, columnData, columns), sdIndex*c.chunk)
+						data := data[singleData[sdIndex]+5 : singleData[sdIndex+1]]
+						columnData, _ := table.ReadSingleData(data, columns)
+						key := table.GenerateKey(nonClusterIndex, columnData, columns)
+						nonClusterIndex.UpdateIndex(key, singleData[sdIndex]*c.chunk)
 					}
 				}
 
