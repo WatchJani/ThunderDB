@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"root/linker"
+	"root/table"
 	"strconv"
 	"sync"
 )
@@ -48,13 +49,13 @@ func New(linker linker.Linker, path string, numWorkers int) (*Cutter, error) {
 }
 
 func (c *Cutter) Cut() {
+	singleData := make([]int, 0, 20)
+
 	for {
-		dataBlock, size, tableWg := c.link.Receive()
+		dataBlock, size, tableWg, nonCluster, columns := c.link.Receive()
 		var wg sync.WaitGroup
 
-		data := (*dataBlock)[:size]
-
-		stack := make([]byte, 4096)
+		data, stack := (*dataBlock)[:size], make([]byte, 4096)
 
 		offset, counter := 0, 0
 		for offset < len(data) {
@@ -67,7 +68,7 @@ func (c *Cutter) Cut() {
 				break
 			}
 
-			// singleData = append(singleData, data[offset+5:end])
+			singleData = append(singleData, offset, end)
 
 			if end > 4096 {
 				wg.Add(1)
@@ -77,21 +78,19 @@ func (c *Cutter) Cut() {
 					wg:    &wg,
 				}
 
-				// clusterUpdate := singleData[0]
-				// clusterIndex.InsetInFile(IndexKey(tableColumn, &clusterIndex, clusterUpdate), c.chunk)
-
-				// for _, nonClusterIndex := range nonClusterIndex {
-				// 	for _, singleData := range singleData {
-				// 		nonClusterIndex.UpdateIndex(IndexKey(tableColumn, &clusterIndex, singleData), 0) //! ne smije biti 0 offset, promjeniti singleData u []int
-				// 	}
-				// }
+				for _, nonClusterIndex := range nonCluster { // update all nonCluster key
+					for sdIndex := 0; sdIndex < len(singleData); sdIndex += 2 { // update all data index for one single chunk (block file)
+						columnData, _ := table.ReadSingleData(data[singleData[sdIndex]+5:singleData[sdIndex+1]], columns)
+						nonClusterIndex.UpdateIndex(table.GenerateKey(nonClusterIndex, columnData, columns), sdIndex*c.chunk)
+					}
+				}
 
 				data = data[offset:]
 
 				c.chunk++
 				offset, counter = 0, 0
+				singleData = singleData[:0] //reset all
 				continue
-				// singleData = singleData[:0] //reset all
 			}
 
 			copy(stack[counter:], data[offset:end])

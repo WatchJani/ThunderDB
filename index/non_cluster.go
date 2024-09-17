@@ -36,3 +36,14 @@ func (c *NonCluster) Insert(key [][]byte, offset int) {
 func (c *NonCluster) GetByColumn() []string {
 	return c.byColumn
 }
+
+func (c *NonCluster) Update(key [][]byte, offset int) {
+	c.index.Insert(key, Location{
+		offset:   offset,
+		location: 'f',
+	})
+}
+
+func (c *NonCluster) UpdateIndex(key [][]byte, offset int) {
+	c.Update(key, offset)
+}

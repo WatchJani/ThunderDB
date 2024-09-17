@@ -23,6 +23,10 @@ type Table struct {
 	wg         sync.WaitGroup
 }
 
+func (t *Table) GetColumns() []column.Column {
+	return t.columns
+}
+
 func containsAll(slice1 []column.Column, slice2 []string) (string, bool) {
 	for _, str1 := range slice2 {
 		found := false
@@ -82,7 +86,7 @@ func (t *Table) Insert(data []byte) int {
 		t.wg.Wait()
 		t.wg.Add(1)
 		t.SetOld(t.memTable) //set to manager to old
-		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg)
+		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg, t.nonCluster, t.columns)
 
 		t.memTable = make([]byte, 8*1024*1024)
 		t.counter = 0
@@ -100,10 +104,14 @@ func (t *Table) IsEnoughSpace(data []byte) bool {
 }
 
 func (t *Table) ReadSingleData(data []byte) ([][]byte, error) {
-	columnData := make([][]byte, len(t.columns))
+	return ReadSingleData(data, t.columns)
+}
+
+func ReadSingleData(data []byte, columns []column.Column) ([][]byte, error) {
+	columnData := make([][]byte, len(columns))
 
 	index := 0
-	for i := range t.columns {
+	for i := range columns {
 		index += 5
 		size := data[index-5 : index]
 
@@ -121,13 +129,27 @@ func (t *Table) ReadSingleData(data []byte) ([][]byte, error) {
 }
 
 func (t *Table) GetColumnNameIndex(name string) int {
-	for index, column := range t.columns {
+	return GetColumnNameIndex(name, t.columns)
+}
+
+func GetColumnNameIndex(name string, columns []column.Column) int {
+	for index, column := range columns {
 		if column.GetName() == name {
 			return index
 		}
 	}
 
 	return -1
+}
+
+func GenerateKey(index index.Index, columnData [][]byte, columns []column.Column) [][]byte {
+	indexColumn := index.GetByColumn()
+	key := make([][]byte, len(indexColumn))
+	for index, column := range indexColumn {
+		key[index] = columnData[GetColumnNameIndex(column, columns)]
+	}
+
+	return key
 }
 
 func (t *Table) GetIndexes() []index.Index {

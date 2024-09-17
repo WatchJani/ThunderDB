@@ -7,6 +7,7 @@ import (
 	"root/cutter"
 	"root/database"
 	"root/linker"
+	"root/table"
 	"strings"
 )
 
@@ -50,22 +51,17 @@ func (t *Thunder) NewIndex(databaseName, tableName string, columns []string) err
 
 func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 	database := t.database[databaseName]
-	table := database.GetTable(tableName)
+	tableProcess := database.GetTable(tableName)
 
-	memTableOffset := table.Insert(data) //write data to memTable or send on disk
+	memTableOffset := tableProcess.Insert(data) //write data to memTable or send on disk
 
-	columnData, err := table.ReadSingleData(data[5:])
+	columnData, err := tableProcess.ReadSingleData(data[5:])
 	if err != nil {
 		log.Println(err)
 	}
 
-	for _, index := range table.GetIndexes() {
-		indexColumn := index.GetByColumn()
-		key := make([][]byte, len(indexColumn))
-		for index, column := range indexColumn {
-			key[index] = columnData[table.GetColumnNameIndex(column)]
-		}
-
+	for _, index := range tableProcess.GetIndexes() {
+		key := table.GenerateKey(index, columnData, tableProcess.GetColumns())
 		index.Insert(key, memTableOffset)
 	}
 }

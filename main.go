@@ -25,9 +25,11 @@ func main() {
 		return
 	}
 
-	if _, err := thunder.QueryParser(query.Insert()); err != nil {
-		log.Println(err)
-		return
+	for range 171197 {
+		if _, err := thunder.QueryParser(query.Insert()); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 
 	// if err := thunder.NewTable("netflix", "user", []column.Column{}); err != nil {
