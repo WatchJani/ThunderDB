@@ -2,6 +2,7 @@ package index
 
 import (
 	t "root/b_plus_tree"
+	"root/filter"
 	"root/manager"
 	"root/skip_list"
 )
@@ -37,4 +38,8 @@ func (c *Cluster) Insert(key [][]byte, offset int) {
 
 func (c *Cluster) GetByColumn() []string {
 	return []string{c.byColumn}
+}
+
+func (c *Cluster) Search(key [][]byte, filter filter.Filter) {
+
 }
