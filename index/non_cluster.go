@@ -55,6 +55,6 @@ func (c *NonCluster) UpdateIndex(key [][]byte, offset int) {
 	c.Update(key, offset)
 }
 
-func (c *NonCluster) Search(key [][]byte, filter filter.Filter) {
-
+func (c *NonCluster) Search(key [][]byte, filter []filter.FilterField) ([]byte, error) {
+	return []byte{}, nil
 }

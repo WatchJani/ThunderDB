@@ -40,6 +40,6 @@ func (c *Cluster) GetByColumn() []string {
 	return []string{c.byColumn}
 }
 
-func (c *Cluster) Search(key [][]byte, filter filter.Filter) {
-
+func (c *Cluster) Search(key [][]byte, filter []filter.FilterField) ([]byte, error) {
+	return []byte{}, nil
 }

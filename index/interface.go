@@ -6,5 +6,5 @@ type Index interface {
 	Insert([][]byte, int)
 	GetByColumn() []string
 	GetIndexType() string
-	Search([][]byte, filter.Filter)
+	Search([][]byte, []filter.FilterField) ([]byte, error)
 }

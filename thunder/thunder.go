@@ -85,9 +85,7 @@ func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte,
 	}
 
 	index, key, filter := ChooseIndex(tableProcess, filterField)
-	fmt.Printf("index type %s | key %v | filter %v \n", index.GetIndexType(), key, filter)
-
-	return []byte{}, nil
+	return index.Search(key, filter)
 }
 
 func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]byte, []f.FilterField) {
