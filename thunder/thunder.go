@@ -120,7 +120,11 @@ func ChooseIndex(t *table.Table, filterField []FilterField) (index.Index, [][]by
 		for j, index := range t.GetNonClusterIndex() {
 			if index.GetByColumn()[0] == userColumn {
 				key := ColumnBySearch(index.GetByColumn(), filterField)
-				return t.GetNonClusterIndex()[j], key, filterField[len(key):]
+				if filterField[len(key)-1].operation == "==" {
+					filterField = filterField[len(key):]
+				}
+
+				return t.GetNonClusterIndex()[j], key, filterField
 			}
 		}
 	}
@@ -132,19 +136,27 @@ func ColumnBySearch(index []string, filter []FilterField) [][]byte {
 	key := make([][]byte, 0, len(index))
 	for i := 0; i < len(index); i++ {
 		found := false
+
 		for j := i; j < len(filter); j++ {
-			if index[i] == filter[j].field && filter[j].operation == "==" {
-				key[i] = filter[j].value
+			if index[i] == filter[j].field {
+				key = append(key, filter[j].value)
 				filter[j], filter[i] = filter[i], filter[j]
+
+				if filter[j].operation != "==" {
+					goto end
+				}
+
 				found = true
 				break
 			}
 		}
+
 		if !found {
 			break
 		}
 	}
 
+end:
 	return key
 }
 
