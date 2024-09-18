@@ -10,6 +10,7 @@ type NonCluster struct {
 	index    *t.Tree[Location]
 	byColumn []string
 	*manager.Manager
+	indexType string
 }
 
 type Location struct {
@@ -19,10 +20,15 @@ type Location struct {
 
 func NewNonCluster(manager *manager.Manager, byColumn ...string) *NonCluster {
 	return &NonCluster{
-		index:    t.New[Location](100),
-		byColumn: byColumn,
-		Manager:  manager,
+		index:     t.New[Location](100),
+		byColumn:  byColumn,
+		Manager:   manager,
+		indexType: "nonCluster",
 	}
+}
+
+func (c *NonCluster) GetIndexType() string {
+	return c.indexType
 }
 
 func (c *NonCluster) Insert(key [][]byte, offset int) {
@@ -47,3 +53,7 @@ func (c *NonCluster) Update(key [][]byte, offset int) {
 func (c *NonCluster) UpdateIndex(key [][]byte, offset int) {
 	c.Update(key, offset)
 }
+
+// func (c *NonCluster) Search(key [][]byte, filter ) {
+
+// }

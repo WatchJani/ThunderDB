@@ -23,6 +23,10 @@ type Table struct {
 	wg         sync.WaitGroup
 }
 
+func (t *Table) GetClusterIndex() *index.Cluster {
+	return t.cluster
+}
+
 func (t *Table) GetColumns() []column.Column {
 	return t.columns
 }
@@ -161,4 +165,8 @@ func (t *Table) GetIndexes() []index.Index {
 	}
 
 	return index
+}
+
+func (t *Table) GetNonClusterIndex() []*index.NonCluster {
+	return t.nonCluster
 }

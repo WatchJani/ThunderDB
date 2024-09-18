@@ -9,6 +9,7 @@ import (
 	"root/cutter"
 	"root/database"
 	"root/filter"
+	"root/index"
 	"root/linker"
 	"root/table"
 	"strings"
@@ -69,10 +70,13 @@ func (t *Thunder) InsetData(databaseName, tableName string, data []byte) {
 }
 
 type FilterField struct {
-	filter filter.Filter
-	field  string
+	filter    filter.Filter
+	field     string
+	operation string
+	value     []byte
 }
 
+// ! provjeriti da li postoji kolona uopste ta koja se pretrazuje
 func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte, error) {
 	database := t.database[databaseName]
 	tableProcess := database.GetTable(tableName)
@@ -85,16 +89,63 @@ func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte,
 	filterField := make([]FilterField, dataSize/3)
 	for columnIndex, dataIndex := 0, 0; dataIndex < len(data); dataIndex, columnIndex = dataIndex+3, columnIndex+1 {
 		filterField[columnIndex] = FilterField{
-			filter: filter.GenerateFilter(data[dataIndex+1], data[dataIndex+2]),
-			field:  string(data[dataIndex]),
+			filter: filter.GenerateFilter(
+				data[dataIndex+1],
+				data[dataIndex+2],
+			),
+			field:     string(data[dataIndex]),
+			operation: string(data[dataIndex+1]),
+			value:     data[dataIndex+2],
 		}
 	}
 
-	//filter with column
-	fmt.Println(filterField)
-	_ = tableProcess
+	index, key, filter := ChooseIndex(tableProcess, filterField)
+	fmt.Printf("index type %s | key %v | filter %v \n", index.GetIndexType(), key, filter)
 
 	return []byte{}, nil
+}
+
+func ChooseIndex(t *table.Table, filterField []FilterField) (index.Index, [][]byte, []FilterField) {
+	for i, column := range filterField {
+		userColumn := column.field
+		if userColumn == "id" {
+			f := filterField
+			if filterField[i].operation == "==" {
+				f = filterField[1:]
+			}
+
+			return t.GetClusterIndex(), [][]byte{filterField[i].value}, f
+		}
+
+		for j, index := range t.GetNonClusterIndex() {
+			if index.GetByColumn()[0] == userColumn {
+				key := ColumnBySearch(index.GetByColumn(), filterField)
+				return t.GetNonClusterIndex()[j], key, filterField[len(key):]
+			}
+		}
+	}
+
+	return t.GetClusterIndex(), [][]byte{}, filterField //Work
+}
+
+func ColumnBySearch(index []string, filter []FilterField) [][]byte {
+	key := make([][]byte, 0, len(index))
+	for i := 0; i < len(index); i++ {
+		found := false
+		for j := i; j < len(filter); j++ {
+			if index[i] == filter[j].field && filter[j].operation == "==" {
+				key[i] = filter[j].value
+				filter[j], filter[i] = filter[i], filter[j]
+				found = true
+				break
+			}
+		}
+		if !found {
+			break
+		}
+	}
+
+	return key
 }
 
 func (t *Thunder) QueryParser(payload []byte) ([]byte, error) {
