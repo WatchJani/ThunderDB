@@ -5,6 +5,7 @@ import (
 	// _ "root/init"
 
 	"fmt"
+	"log"
 	"root/skip_list"
 )
 
@@ -39,6 +40,13 @@ func main() {
 	tree.Insert(key2, 44)
 	tree.Insert(key4, 45)
 
-	fmt.Println("===========================")
-	tree.ReadAllFromRightToLeft()
+
+	tree.ReadAllFromLeftToRight()
+
+	ok, offset := tree.Search([][]byte{[]byte("2"), []byte("56")})
+	if !ok {
+		log.Println("not found")
+	}
+
+	fmt.Println(offset)
 }

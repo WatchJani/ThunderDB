@@ -84,18 +84,19 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 		stack = st.New[*Node](s.height)
 	}
 
-	index := 0
-	for {
-		for current.next != nil {
-			num := bytes.Compare(current.next.key[index], key[index])
+	for { //Down
+		for current.next != nil { //to right
+			var num int
+			for i := 0; i < len(key); i++ { //Search for key
+				num = bytes.Compare(current.next.key[i], key[i])
+
+				if num != 0 {
+					break
+				}
+			}
+
 			if num == -1 {
 				current = current.next
-			} else if num == 0 {
-				if index+1 < len(key) {
-					index++
-				} else {
-					break // i found the key
-				}
 			} else {
 				break
 			}
@@ -149,7 +150,7 @@ func flipCoin(percentage float64) bool {
 	return rand.Float64() < percentage
 }
 
-func (s *SkipList) Search(key [][]byte) (bool, int) {
+func (s *SkipList) Search(key [][]byte) (bool, *Node) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -165,7 +166,7 @@ func (s *SkipList) Search(key [][]byte) (bool, int) {
 				if index+1 < len(key) {
 					index++
 				} else { // > n
-					return true, current.next.value
+					return true, current.next
 				}
 			} else {
 				break
@@ -173,7 +174,7 @@ func (s *SkipList) Search(key [][]byte) (bool, int) {
 		}
 
 		if current.leaf {
-			return false, current.next.value
+			return false, current.next
 		}
 
 		current = current.down
