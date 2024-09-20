@@ -18,5 +18,5 @@ func NewIndex() []byte {
 }
 
 func Search() []byte {
-	return []byte("SEARCH Movies Actor name > night age == 23")
+	return []byte("SEARCH Movies Actor id > 4511")
 }

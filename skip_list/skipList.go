@@ -53,6 +53,7 @@ func New(height, capacity int, percentage float64) *SkipList {
 
 type Node struct {
 	next  *Node
+	back  *Node
 	down  *Node
 	value int
 	key   [][]byte
@@ -60,7 +61,7 @@ type Node struct {
 	leaf  bool
 }
 
-func NewNode(next, down *Node, value int, key [][]byte, leaf bool) Node {
+func NewNode(back, next, down *Node, value int, key [][]byte, leaf bool) Node {
 	return Node{
 		time:  time.Now(),
 		next:  next,
@@ -68,6 +69,7 @@ func NewNode(next, down *Node, value int, key [][]byte, leaf bool) Node {
 		value: value,
 		key:   key,
 		leaf:  leaf,
+		back:  back,
 	}
 }
 
@@ -83,17 +85,14 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 	}
 
 	index := 0
-	// compareFn := GetCompareFuncType(s.dataType[index])
 	for {
 		for current.next != nil {
-			// num := compareFn(current.next.key[index], key[index])
 			num := bytes.Compare(current.next.key[index], key[index])
 			if num == -1 {
 				current = current.next
 			} else if num == 0 {
 				if index+1 < len(key) {
 					index++
-					// compareFn = GetCompareFuncType(s.dataType[index])
 				} else {
 					break // i found the key
 				}
@@ -115,7 +114,12 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 	node := s.Pool.Insert()
 
 	current.next = node
-	*node = NewNode(nextNode, nil, value, key, true) // create new leaf node
+
+	if nextNode != nil {
+		nextNode.back = node
+	}
+
+	*node = NewNode(current, nextNode, nil, value, key, true) // create new leaf node
 
 	for flipCoin(s.percentage) {
 		downNode := node
@@ -134,7 +138,7 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 
 		node = s.Pool.Insert()
 		leftNode.next = node
-		*node = NewNode(nextNode, downNode, value, key, false) // create new internal node
+		*node = NewNode(leftNode, nextNode, downNode, value, key, false) // create new internal node
 	}
 
 	stack.Clear()       //Clear stack
@@ -150,20 +154,16 @@ func (s *SkipList) Search(key [][]byte) (bool, int) {
 	defer s.Unlock()
 
 	current := s.roots[s.rootIndex]
-
 	index := 0
-	// compareFn := GetCompareFuncType(s.dataType[index])
 
 	for {
 		for current.next != nil {
-			// num := compareFn(current.next.key[index], key[index])
 			num := bytes.Compare(current.next.key[index], key[index])
 			if num == -1 { // < n
 				current = current.next
 			} else if num == 0 { // == n
 				if index+1 < len(key) {
 					index++
-					// compareFn = GetCompareFuncType(s.dataType[index])
 				} else { // > n
 					return true, current.next.value
 				}
@@ -210,31 +210,24 @@ func (s *SkipList) Clear() {
 	s.Pool.Clear()
 }
 
-// func CompareFloat(key, currentKey []byte) int {
-// 	keyFromString, _ := strconv.ParseFloat(string(key), 64)
-// 	currentKeyFromString, _ := strconv.ParseFloat(string(currentKey), 64)
+// for test
+func (s *SkipList) ReadAllFromLeftToRight() {
+	for root := s.roots[0].next; root != nil; root = root.next {
+		fmt.Println(root)
+	}
+}
 
-// 	return cmp.Compare(keyFromString, currentKeyFromString)
-// }
+// for test
+func (s *SkipList) ReadAllFromRightToLeft() {
+	root := s.roots[0].next
 
-// func CompareInt(key, currentKey []byte) int {
-// 	keyFromString, _ := strconv.Atoi(string(currentKey))
-// 	currentKeyFromString, _ := strconv.Atoi(string(currentKey))
+	//go to last right position
+	for root.next != nil {
+		root = root.next
+	}
 
-// 	return cmp.Compare(keyFromString, currentKeyFromString)
-// }
-
-// func CompareOtherType(key, currentKey []byte) int {
-// 	return bytes.Compare(key, currentKey)
-// }
-
-// func GetCompareFuncType(dataType string) func([]byte, []byte) int {
-// 	switch dataType {
-// 	case "INT":
-// 		return CompareInt
-// 	case "FLOAT":
-// 		return CompareFloat
-// 	default:
-// 		return CompareOtherType
-// 	}
-// }
+	for root.back != nil {
+		fmt.Println(root)
+		root = root.back
+	}
+}

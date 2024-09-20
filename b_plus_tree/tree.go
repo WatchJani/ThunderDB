@@ -120,19 +120,46 @@ func (s *Stack[V]) Pop() (positionStr[V], error) {
 	return pop, nil
 }
 
-func (t *Tree[V]) Find(key [][]byte) (V, error) {
-	for next := t.root; next != nil; {
-		index, found := next.search(key)
+func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
+	var (
+		prevues  *Node[V]
+		res      int = -1
+		position int
+	)
 
-		if found {
-			return next.items[index-1].value, nil
-		}
+	for current := t.root; current != nil; {
+		position, _ = current.search(key)
 
-		next = next.Children[index]
+		prevues = current
+		current = current.Children[position]
 	}
 
-	var res V
-	return res, fmt.Errorf("key %v not found", key)
+	if operation == ">" {
+		res = position
+		if prevues.pointer == position {
+			res = -1
+		}
+	} else if operation == "<" {
+		if position >= 1 {
+			res = position - 1
+		} else {
+			res = -1
+		}
+	}
+
+	return prevues, res, fmt.Errorf("key %v not found", key)
+}
+
+func (t *Node[V]) GetItem(index int) item[V] {
+	return t.items[index]
+}
+
+func (t *Node[V]) NextLeft() *Node[V] {
+	return t.nextNodeL
+}
+
+func (t *Node[V]) NextRight() *Node[V] {
+	return t.nextNodeR
 }
 
 func (t *Tree[V]) Insert(key [][]byte, value V) {

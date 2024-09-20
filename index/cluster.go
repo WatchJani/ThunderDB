@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	t "root/b_plus_tree"
 	"root/filter"
 	"root/manager"
@@ -41,5 +42,7 @@ func (c *Cluster) GetByColumn() []string {
 }
 
 func (c *Cluster) Search(key [][]byte, filter []filter.FilterField) ([]byte, error) {
+	fmt.Println(key, filter)
+
 	return []byte{}, nil
 }
