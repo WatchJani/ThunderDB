@@ -40,10 +40,9 @@ func main() {
 	tree.Insert(key2, 44)
 	tree.Insert(key4, 45)
 
-
 	tree.ReadAllFromLeftToRight()
 
-	ok, offset := tree.Search([][]byte{[]byte("2"), []byte("56")})
+	ok, offset := tree.Search([][]byte{[]byte("2"), []byte("43")}, ">")
 	if !ok {
 		log.Println("not found")
 	}

@@ -85,22 +85,7 @@ func (s *SkipList) Insert(key [][]byte, value int) {
 	}
 
 	for { //Down
-		for current.next != nil { //to right
-			var num int
-			for i := 0; i < len(key); i++ { //Search for key
-				num = bytes.Compare(current.next.key[i], key[i])
-
-				if num != 0 {
-					break
-				}
-			}
-
-			if num == -1 {
-				current = current.next
-			} else {
-				break
-			}
-		}
+		current = HorizontalSearch(current, key)
 
 		if current.leaf {
 			break
@@ -150,30 +135,40 @@ func flipCoin(percentage float64) bool {
 	return rand.Float64() < percentage
 }
 
-func (s *SkipList) Search(key [][]byte) (bool, *Node) {
-	s.Lock()
-	defer s.Unlock()
+func HorizontalSearch(current *Node, key [][]byte) *Node {
+	for current.next != nil {
+		var num int
+		for i := 0; i < len(key); i++ { //Search for key
+			num = bytes.Compare(current.next.key[i], key[i])
 
-	current := s.roots[s.rootIndex]
-	index := 0
-
-	for {
-		for current.next != nil {
-			num := bytes.Compare(current.next.key[index], key[index])
-			if num == -1 { // < n
-				current = current.next
-			} else if num == 0 { // == n
-				if index+1 < len(key) {
-					index++
-				} else { // > n
-					return true, current.next
-				}
-			} else {
+			if num != 0 {
 				break
 			}
 		}
 
+		if num == -1 {
+			current = current.next
+		} else {
+			break
+		}
+	}
+
+	return current
+}
+
+func (s *SkipList) Search(key [][]byte, operation string) (bool, *Node) {
+	s.Lock()
+	defer s.Unlock()
+
+	current := s.roots[s.rootIndex]
+
+	for {
+		current = HorizontalSearch(current, key)
+
 		if current.leaf {
+			if operation == "<" {
+				return false, current
+			}
 			return false, current.next
 		}
 
