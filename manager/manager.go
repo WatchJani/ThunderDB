@@ -13,6 +13,10 @@ type Manager struct {
 	tree *skip_list.SkipList
 }
 
+func (m *Manager) GetAllData() (*os.File, []byte, []byte, *skip_list.SkipList) {
+	return m.store, m.memTable, m.old, m.tree
+}
+
 func (m *Manager) SetOld(data []byte, tree *skip_list.SkipList) {
 	m.old = data
 	m.tree = tree
@@ -24,7 +28,6 @@ func (m *Manager) GetOld() *[]byte {
 
 func New(memTable []byte, file *os.File) (*Manager, error) {
 	//
-
 	return &Manager{
 		store:    file,
 		memTable: memTable,

@@ -75,6 +75,8 @@ func (c *Cutter) Cut() {
 					wg:    &wg,
 				}
 
+				//add index for cluster
+
 				for _, nonClusterIndex := range nonCluster { // update all nonCluster key
 					for sdIndex := 0; sdIndex < len(singleData); sdIndex += 2 { // update all data index for one single chunk (block file)
 						data := data[singleData[sdIndex]+5 : singleData[sdIndex+1]]

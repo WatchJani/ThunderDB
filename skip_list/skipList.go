@@ -189,6 +189,10 @@ func (s *Node) NextNode() *Node {
 	return s.next
 }
 
+func (s *Node) BackNode() *Node {
+	return s.back
+}
+
 func (n *Node) Key() [][]byte {
 	return n.key
 }
