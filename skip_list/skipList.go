@@ -166,10 +166,15 @@ func (s *SkipList) Search(key [][]byte, operation string) (bool, *Node) {
 		current = HorizontalSearch(current, key)
 
 		if current.leaf {
-			if operation == "<" {
+			switch operation {
+			case "<":
+				if current == s.roots[0] {
+					return false, nil
+				}
 				return false, current
+			default:
+				return false, current.next
 			}
-			return false, current.next
 		}
 
 		current = current.down

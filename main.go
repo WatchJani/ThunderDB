@@ -42,7 +42,7 @@ func main() {
 
 	tree.ReadAllFromLeftToRight()
 
-	ok, offset := tree.Search([][]byte{[]byte("2"), []byte("43")}, ">")
+	ok, offset := tree.Search([][]byte{[]byte("1"), []byte("35")}, "<")
 	if !ok {
 		log.Println("not found")
 	}
