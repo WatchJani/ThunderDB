@@ -93,10 +93,12 @@ func (t *Table) Insert(data []byte) int {
 		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg, t.nonCluster, t.columns)
 
 		t.memTable = make([]byte, 8*1024*1024)
+		// t.cluster.NewMemTableIndex()
 		t.counter = 0
 	}
 
 	offset := t.counter
+
 	copy(t.memTable[t.counter:], data)
 	t.counter += len(data)
 

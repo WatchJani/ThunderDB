@@ -156,7 +156,7 @@ func HorizontalSearch(current *Node, key [][]byte) *Node {
 	return current
 }
 
-func (s *SkipList) Search(key [][]byte, operation string) (bool, *Node) {
+func (s *SkipList) Search(key [][]byte, operation string) (*Node, bool) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -169,21 +169,15 @@ func (s *SkipList) Search(key [][]byte, operation string) (bool, *Node) {
 			switch operation {
 			case "<":
 				if current == s.roots[0] {
-					return false, nil
+					return nil, false
 				}
-				return false, current
+				return current, false
 			default:
-				return false, current.next
+				return current.next, false
 			}
 		}
 
 		current = current.down
-	}
-}
-
-func (s *SkipList) Read() {
-	for startNode := s.roots[0].next; startNode != nil; startNode = startNode.next {
-		fmt.Println(startNode)
 	}
 }
 

@@ -84,17 +84,17 @@ func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte,
 		filterField[columnIndex] = f.New(data[dataIndex], data[dataIndex+1], data[dataIndex+2])
 	}
 
-	index, key, filter := ChooseIndex(tableProcess, filterField)
-	return index.Search(key, filter)
+	index, key, position := ChooseIndex(tableProcess, filterField)
+	return index.Search(key, filterField, position)
 }
 
-func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]byte, []f.FilterField) {
+func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]byte, int) {
 	for i, column := range filterField {
 		userColumn := column.GetField()
 		if userColumn == "id" {
-			f := filterField
+			var f int
 			if filterField[i].GetOperation() == "==" {
-				f = filterField[1:]
+				f = 1
 			}
 
 			return t.GetClusterIndex(), [][]byte{filterField[i].GetValue()}, f
@@ -102,17 +102,17 @@ func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]
 
 		for j, index := range t.GetNonClusterIndex() {
 			if index.GetByColumn()[0] == userColumn {
-				key := ColumnBySearch(index.GetByColumn(), filterField)
+				key, f := ColumnBySearch(index.GetByColumn(), filterField), 0
 				if filterField[len(key)-1].GetOperation() == "==" {
-					filterField = filterField[len(key):]
+					f = len(key)
 				}
 
-				return t.GetNonClusterIndex()[j], key, filterField
+				return t.GetNonClusterIndex()[j], key, f
 			}
 		}
 	}
 
-	return t.GetClusterIndex(), [][]byte{}, filterField //Work
+	return t.GetClusterIndex(), [][]byte{}, 0 //Work
 }
 
 func ColumnBySearch(index []string, filter []f.FilterField) [][]byte {
@@ -182,11 +182,18 @@ func (t *Thunder) CreateTable(args []byte) ([]byte, error) {
 func (t *Thunder) CreateInsert(args []byte) ([]byte, error) {
 	token := make([][]byte, 0, 3)
 
-	for index, prevues := 0, 0; index < len(args); index++ {
-		if args[index] == ' ' {
-			token = append(token, args[prevues:index])
-			prevues = index + 1
+	start, pointer := 0, 0
+
+	for end := 0; end < len(args); end++ {
+		if args[end] == ' ' && pointer < 2 {
+			token = append(token, args[start:end])
+			start = end + 1
+			pointer++
 		}
+	}
+
+	if start < len(args) {
+		token = append(token, args[start:])
 	}
 
 	if len(token) < 3 {

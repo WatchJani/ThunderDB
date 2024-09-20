@@ -4,9 +4,7 @@ import (
 
 	// _ "root/init"
 
-	"fmt"
-	"log"
-	"root/skip_list"
+	_ "root/init"
 )
 
 func main() {
@@ -25,27 +23,28 @@ func main() {
 
 	// fmt.Println(node.GetItem(index))
 
-	tree := skip_list.New(32, 4000, 0.25)
+	// tree := skip_list.New(32, 4000, 0.25)
 
-	key1 := [][]byte{[]byte("1"), []byte("34")}
-	key2 := [][]byte{[]byte("1"), []byte("44")}
-	key3 := [][]byte{[]byte("1"), []byte("74")}
+	// key1 := [][]byte{[]byte("1"), []byte("34")}
+	// key2 := [][]byte{[]byte("1"), []byte("44")}
+	// key3 := [][]byte{[]byte("1"), []byte("74")}
 
-	key4 := [][]byte{[]byte("2"), []byte("45")}
-	key5 := [][]byte{[]byte("2"), []byte("55")}
+	// key4 := [][]byte{[]byte("2"), []byte("45")}
+	// key5 := [][]byte{[]byte("2"), []byte("55")}
 
-	tree.Insert(key3, 74)
-	tree.Insert(key1, 34)
-	tree.Insert(key5, 55)
-	tree.Insert(key2, 44)
-	tree.Insert(key4, 45)
+	// tree.Insert(key3, 74)
+	// tree.Insert(key1, 34)
+	// tree.Insert(key5, 55)
+	// tree.Insert(key2, 44)
+	// tree.Insert(key4, 45)
 
-	tree.ReadAllFromLeftToRight()
+	// tree.ReadAllFromLeftToRight()
 
-	ok, offset := tree.Search([][]byte{[]byte("1"), []byte("35")}, "<")
-	if !ok {
-		log.Println("not found")
-	}
+	// ok, offset := tree.Search([][]byte{[]byte("1"), []byte("35")}, "<")
+	// if !ok {
+	// 	log.Println("not found")
+	// }
 
-	fmt.Println(offset)
+	// fmt.Println(offset)
+
 }

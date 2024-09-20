@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	t "root/b_plus_tree"
 	"root/filter"
 	"root/manager"
@@ -55,6 +56,8 @@ func (c *NonCluster) UpdateIndex(key [][]byte, offset int) {
 	c.Update(key, offset)
 }
 
-func (c *NonCluster) Search(key [][]byte, filter []filter.FilterField) ([]byte, error) {
+func (c *NonCluster) Search(key [][]byte, filter []filter.FilterField, index int) ([]byte, error) {
+	fmt.Println(key, filter[:index], index)
+
 	return []byte{}, nil
 }
