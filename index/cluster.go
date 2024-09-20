@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	t "root/b_plus_tree"
 	"root/filter"
 	"root/manager"
@@ -49,9 +50,11 @@ func (c *Cluster) GetByColumn() []string {
 }
 
 func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, index int) ([]byte, error) {
-	c.memTableIndex.Search(key, filter[index].GetOperation())
-	// c.Manager.GetOldIndex().Search(key, filter[index].GetOperation()) //check if exist
-	c.fileIndex.Find(key, filter[index].GetOperation())
+	node, _ := c.memTableIndex.Search(key, "==")
+	fmt.Println(node.GetValue())
+	// fmt.Println(node.GetValue())
+	// // c.Manager.GetOldIndex().Search(key, filter[index].GetOperation()) //check if exist
+	// c.fileIndex.Find(key, filter[index].GetOperation())
 
 	// fmt.Println(key, filter[index:], index)
 

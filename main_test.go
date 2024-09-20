@@ -57,6 +57,11 @@ func BenchmarkSearchSpeed(b *testing.B) {
 		return
 	}
 
+	if _, err := thunder.QueryParser(query.Insert()); err != nil {
+		log.Println(err)
+		return
+	}
+
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
