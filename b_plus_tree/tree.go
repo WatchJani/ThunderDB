@@ -85,6 +85,10 @@ func (n *Node[V]) search(target [][]byte) (int, bool) {
 		}
 
 		if num == 0 {
+			for Equal(n.items[mid].key, target) && mid < n.pointer-1 { //[1,1,1,1,[1],1,1,1,1] -> [1,1,1,1,1,1,1,1,[1]]
+				mid++
+			}
+
 			return mid + 1, true
 		} else if num == -1 {
 			low = mid + 1
@@ -94,6 +98,12 @@ func (n *Node[V]) search(target [][]byte) (int, bool) {
 	}
 
 	return low, false
+}
+
+func (t *Tree[V]) TestRoot() {
+	for _, item := range t.root.items[:t.root.pointer] {
+		fmt.Println(item.value)
+	}
 }
 
 func newStack[V any]() Stack[V] {

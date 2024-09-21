@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+
 	// _ "root/init"
 
 	b "root/b_plus_tree"
@@ -48,7 +49,7 @@ func main() {
 
 	// fmt.Println(offset)
 
-	tree := b.New[int](5)
+	tree := b.New[int](11)
 
 	key := [][]byte{[]byte("1111")}
 	tree.Insert(key, 1)
@@ -69,4 +70,7 @@ func main() {
 	}
 
 	fmt.Println(node.GetValue(index))
+
+	fmt.Println("test")
+	tree.TestRoot()
 }
