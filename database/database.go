@@ -21,8 +21,8 @@ func New(linker linker.Linker) *Database {
 	}
 }
 
-func (db *Database) CreateTable(tableName string, columns []column.Column) error {
-	file, err := os.OpenFile("/home/janko/Desktop/chanel23l/store.bin", os.O_RDWR|os.O_CREATE, 0644)
+func (db *Database) CreateTable(tableName, filePath string, columns []column.Column) error {
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println(err)
 	}

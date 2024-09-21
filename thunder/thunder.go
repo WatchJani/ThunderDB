@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path"
 	"root/column"
 	"root/cutter"
 	"root/database"
@@ -17,23 +19,31 @@ import (
 
 type Thunder struct {
 	linker.Linker
+	filePath string
 	database map[string]*database.Database
 }
 
-func New() Thunder {
+func New() (*Thunder, error) {
 	linker := linker.New()
 
-	cutter, err := cutter.New(linker, "/home/janko/Desktop/chanel23l/store.bin", 10)
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	path := path.Join(dir, "store.bin")
+	cutter, err := cutter.New(linker, path, 10)
 	if err != nil {
 		log.Println(err)
 	}
 
 	go cutter.Cut()
 
-	return Thunder{
+	return &Thunder{
 		Linker:   linker,
+		filePath: path,
 		database: make(map[string]*database.Database),
-	}
+	}, nil
 }
 
 func (t *Thunder) NewDatabase(name string) error {
@@ -43,7 +53,7 @@ func (t *Thunder) NewDatabase(name string) error {
 
 func (t *Thunder) NewTable(databaseName, tableName string, columns []column.Column) error {
 	database := t.database[databaseName]
-	return database.CreateTable(tableName, columns)
+	return database.CreateTable(tableName, t.filePath, columns)
 }
 
 func (t *Thunder) NewIndex(databaseName, tableName string, columns []string) error {

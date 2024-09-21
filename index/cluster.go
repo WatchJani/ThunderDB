@@ -156,7 +156,7 @@ func checkValidity(node *skip_list.Node, buffer []byte, tableFields []column.Col
 		return false, []byte{}, err
 	}
 
-	var found bool = true
+	found, counter := true, 0
 	for _, filterFn := range filter {
 		index := helper.GetColumnNameIndex(filterFn.GetField(), tableFields)
 
@@ -164,6 +164,11 @@ func checkValidity(node *skip_list.Node, buffer []byte, tableFields []column.Col
 			found = false
 			break
 		}
+		counter++
+	}
+
+	if counter == 0 {
+		return found, []byte{}, fmt.Errorf("index is not usable anymore")
 	}
 
 	return found, buffer[offset : offset+5+size], nil
@@ -208,7 +213,7 @@ func Generate(
 		filter,
 		tableFields,
 	)
-	
+
 	return memTableBuffer, dataMemTable, frozenBuffer, dataFrozen, NewFileReader(store, fileIndex, key, tableFields, filter)
 }
 

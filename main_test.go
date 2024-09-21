@@ -10,7 +10,10 @@ import (
 func BenchmarkInsertSpeed(b *testing.B) {
 	b.StopTimer()
 
-	thunder := thunder.New()
+	thunder, err := thunder.New()
+	if err != nil {
+		log.Println(err)
+	}
 
 	if _, err := thunder.QueryParser(query.CreateDataBase()); err != nil {
 		log.Println(err)
@@ -40,7 +43,11 @@ func BenchmarkInsertSpeed(b *testing.B) {
 func BenchmarkSearchSpeed(b *testing.B) {
 	b.StopTimer()
 
-	thunder := thunder.New()
+	thunder, err := thunder.New()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	if _, err := thunder.QueryParser(query.CreateDataBase()); err != nil {
 		log.Println(err)
