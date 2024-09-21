@@ -122,8 +122,7 @@ func (s *Stack[V]) Pop() (positionStr[V], error) {
 func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
 	var (
 		prevues  *Node[V]
-		res      int = -1
-		position int
+		position int = -1
 	)
 
 	for current := t.root; current != nil; {
@@ -133,43 +132,44 @@ func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
 		current = current.Children[position]
 	}
 
+	//popraviti res
 	if operation == ">" {
-		res = position
 		if prevues.pointer == position {
-			res = -1
+			position = -1
 		}
 	} else if operation == "<" {
 		if position >= 1 {
-			res = position - 1
+			position--
 		} else {
-			res = -1
+			position = -1
 		}
 	}
 
-	//for example
+	//for example binary search
 	//n == 13
 	//13 13 13 13 13 [13] 13 13 13 13
 	//i need first key
 
 	for {
-		node, index := prevues.GoBack(res)
-		if index == -1 {
+		node, index := prevues.GoBack(position)
+		if index == -1 || node == nil {
 			break
 		}
-		
+
 		if Equal(node.items[index].key, key) {
-			prevues, res = node, index
+			prevues = node
+			position = index
 		} else {
 			break
 		}
 	}
 
-	return prevues, res, fmt.Errorf("key %v not found", key)
+	return prevues, 0, fmt.Errorf("key %v not found", key)
 }
 
 func Equal(key1, key2 [][]byte) bool {
 	var num int = 0
-	for i := 0; i < len(key1); i++ {
+	for i := 0; i < len(key2); i++ {
 		num = bytes.Compare(key1[i], key2[i])
 
 		if num != 0 {
@@ -181,8 +181,8 @@ func Equal(key1, key2 [][]byte) bool {
 }
 
 func (t *Node[V]) GoBack(res int) (*Node[V], int) {
-	if res > 1 {
-		return nil, res - 1
+	if res > 0 {
+		return t, res - 1
 	}
 
 	node := t.nextNodeL
