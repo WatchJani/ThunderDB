@@ -75,19 +75,18 @@ func (n *Node[V]) search(target [][]byte) (int, bool) {
 	for low <= high {
 		mid := (low + high) / 2
 
-		var operation int = 0
+		var num int = 0
 		for i := 0; i < len(target); i++ {
-			num := bytes.Compare(n.items[mid].key[i], target[i])
+			num = bytes.Compare(n.items[mid].key[i], target[i])
 
 			if num != 0 {
-				operation = num
 				break
 			}
 		}
 
-		if operation == 0 {
+		if num == 0 {
 			return mid + 1, true
-		} else if operation == -1 {
+		} else if num == -1 {
 			low = mid + 1
 		} else {
 			high = mid - 1
@@ -147,7 +146,51 @@ func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
 		}
 	}
 
+	//for example
+	//n == 13
+	//13 13 13 13 13 [13] 13 13 13 13
+	//i need first key
+
+	for {
+		node, index := prevues.GoBack(res)
+		if index == -1 {
+			break
+		}
+		
+		if Equal(node.items[index].key, key) {
+			prevues, res = node, index
+		} else {
+			break
+		}
+	}
+
 	return prevues, res, fmt.Errorf("key %v not found", key)
+}
+
+func Equal(key1, key2 [][]byte) bool {
+	var num int = 0
+	for i := 0; i < len(key1); i++ {
+		num = bytes.Compare(key1[i], key2[i])
+
+		if num != 0 {
+			break
+		}
+	}
+
+	return num == 0
+}
+
+func (t *Node[V]) GoBack(res int) (*Node[V], int) {
+	if res > 1 {
+		return nil, res - 1
+	}
+
+	node := t.nextNodeL
+	if node != nil {
+		return node, node.pointer - 1
+	}
+
+	return nil, -1
 }
 
 func (t *Node[V]) GetItem(index int) item[V] {
@@ -168,14 +211,15 @@ func (t *Node[V]) NextRight() *Node[V] {
 
 func (t *Tree[V]) Insert(key [][]byte, value V) {
 	stack, item := newStack[V](), newItem(key, value)
-	position, found := findLeaf(t.root, &stack, key)
+	position, _ := findLeaf(t.root, &stack, key)
 
 	current, _ := stack.Pop()
+
 	//update just state state
-	if found {
-		current.node.items[position].value = value
-		return
-	}
+	// if found {
+	// 	current.node.items[position].value = value
+	// 	return
+	// }
 
 	if middleKey, nodeChildren := insertLeaf(current.node, position, t.degree, item); nodeChildren != nil {
 		for {
