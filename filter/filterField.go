@@ -30,3 +30,7 @@ func (f *FilterField) GetOperation() string {
 func (f *FilterField) GetValue() []byte {
 	return f.value
 }
+
+func (f *FilterField) GetFilter() Filter {
+	return f.filter
+}

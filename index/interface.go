@@ -1,10 +1,13 @@
 package index
 
-import "root/filter"
+import (
+	"root/column"
+	"root/filter"
+)
 
 type Index interface {
 	Insert([][]byte, int)
 	GetByColumn() []string
 	GetIndexType() string
-	Search([][]byte, []filter.FilterField, int) ([]byte, error)
+	Search([][]byte, []filter.FilterField, int, []column.Column) ([]byte, error)
 }

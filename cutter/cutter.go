@@ -3,6 +3,7 @@ package cutter
 import (
 	"log"
 	"os"
+	"root/helper"
 	"root/linker"
 	"root/table"
 	"strconv"
@@ -80,7 +81,7 @@ func (c *Cutter) Cut() {
 				for _, nonClusterIndex := range nonCluster { // update all nonCluster key
 					for sdIndex := 0; sdIndex < len(singleData); sdIndex += 2 { // update all data index for one single chunk (block file)
 						data := data[singleData[sdIndex]+5 : singleData[sdIndex+1]]
-						columnData, _ := table.ReadSingleData(data, columns)
+						columnData, _ := helper.ReadSingleData(data, columns)
 						key := table.GenerateKey(nonClusterIndex, columnData, columns)
 						nonClusterIndex.UpdateIndex(key, singleData[sdIndex]*c.chunk)
 					}

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	"root/column"
+	"root/helper"
 	"root/index"
 	"root/linker"
 	"root/manager"
-	"strconv"
 	"sync"
 )
 
@@ -110,49 +110,18 @@ func (t *Table) IsEnoughSpace(data []byte) bool {
 }
 
 func (t *Table) ReadSingleData(data []byte) ([][]byte, error) {
-	return ReadSingleData(data, t.columns)
-}
-
-func ReadSingleData(data []byte, columns []column.Column) ([][]byte, error) {
-	columnData := make([][]byte, len(columns))
-
-	index := 0
-	for i := range columns {
-		index += 5
-		size := data[index-5 : index]
-
-		num, err := strconv.Atoi(string(size))
-		if err != nil {
-			return columnData, err
-		}
-
-		end := index + num
-		columnData[i] = data[index:end]
-		index += num
-	}
-
-	return columnData, nil
+	return helper.ReadSingleData(data, t.columns)
 }
 
 func (t *Table) GetColumnNameIndex(name string) int {
-	return GetColumnNameIndex(name, t.columns)
-}
-
-func GetColumnNameIndex(name string, columns []column.Column) int {
-	for index, column := range columns {
-		if column.GetName() == name {
-			return index
-		}
-	}
-
-	return -1
+	return helper.GetColumnNameIndex(name, t.columns)
 }
 
 func GenerateKey(index index.Index, columnData [][]byte, columns []column.Column) [][]byte {
 	indexColumn := index.GetByColumn()
 	key := make([][]byte, len(indexColumn))
 	for index, column := range indexColumn {
-		key[index] = columnData[GetColumnNameIndex(column, columns)]
+		key[index] = columnData[helper.GetColumnNameIndex(column, columns)]
 	}
 
 	return key

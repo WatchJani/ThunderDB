@@ -1,11 +1,16 @@
 package index
 
 import (
+	"fmt"
+	"log"
 	"os"
 	t "root/b_plus_tree"
+	"root/column"
 	"root/filter"
+	"root/helper"
 	"root/manager"
 	"root/skip_list"
+	"strconv"
 )
 
 type Cluster struct {
@@ -56,8 +61,8 @@ type FileReader struct {
 	file   *os.File
 }
 
-func NewFileReader(file *os.File) FileReader {
-	return FileReader{
+func NewFileReader(file *os.File) *FileReader {
+	return &FileReader{
 		file: file,
 	}
 }
@@ -71,14 +76,62 @@ type NextData interface {
 }
 
 type InMemory struct {
-	tree   *skip_list.SkipList
 	buffer []byte
+	node   *skip_list.Node
 }
 
-func NewInMemory(tree *skip_list.SkipList, buffer []byte) InMemory {
-	return InMemory{
-		tree:   tree,
+func NewInMemory(
+	tree *skip_list.SkipList,
+	buffer []byte,
+	key [][]byte,
+	filter []filter.FilterField,
+	tableFields []column.Column,
+) *InMemory {
+	if buffer == nil { //Check for frozen memory
+		return nil
+	}
+
+	node, _ := tree.Search(key, "==") //search first node
+	if node == nil {
+		return nil
+	}
+
+	offset := node.GetValue() //read value from node
+	if offset == -1 {
+		return nil
+	}
+
+	size, err := strconv.Atoi(string(buffer[offset : offset+5])) //get data size
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	data := buffer[offset : offset+size+5]                   //our data
+	col, err := helper.ReadSingleData(data[5:], tableFields) //read all column from data
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	var found bool = true
+	for _, filterFn := range filter {
+		index := helper.GetColumnNameIndex(filterFn.GetField(), tableFields)
+
+		fmt.Println(string(col[index]))
+		if !filterFn.GetFilter()(col[index]) {
+			found = false
+			break
+		}
+	}
+
+	fmt.Println(col)
+	fmt.Println(string(data))
+	fmt.Println(found)
+
+	return &InMemory{
 		buffer: buffer,
+		node:   node,
 	}
 }
 
@@ -86,29 +139,24 @@ func (f *InMemory) Next() {
 
 }
 
-func Generate(manager *manager.Manager, memTable *skip_list.SkipList) (InMemory, InMemory, FileReader) {
+func Generate(
+	manager *manager.Manager,
+	memTable *skip_list.SkipList,
+	key [][]byte,
+	filter []filter.FilterField,
+	tableFields []column.Column,
+) (*InMemory, *InMemory, *FileReader) {
 	store, memTableMemory, frozenMemory, skipListFrozen := manager.GetAllData()
-	return NewInMemory(memTable, memTableMemory),
-		NewInMemory(skipListFrozen, frozenMemory),
+	return NewInMemory(memTable, memTableMemory, key, filter, tableFields),
+		NewInMemory(skipListFrozen, frozenMemory, key, filter, tableFields),
 		NewFileReader(store)
 }
 
 //fix the index
 //fix cutter cluster inset
 
-func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, index int) ([]byte, error) {
-	memTable, frozenMem, store := Generate(c.Manager, c.memTableIndex)
-
-	// node, _ := c.memTableIndex.Search(key, "==")
-	// if node != nil {
-	// 	fmt.Println(node.GetValue())
-
-	// }
-	// // fmt.Println(node.GetValue())
-	// // // c.Manager.GetOldIndex().Search(key, filter[index].GetOperation()) //check if exist
-	// c.fileIndex.Find(key, filter[0].GetOperation())
-
-	// fmt.Println(key, filter[index:], index)
+func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, index int, tableFields []column.Column) ([]byte, error) {
+	Generate(c.Manager, c.memTableIndex, key, filter, tableFields)
 
 	return []byte{}, nil
 }
