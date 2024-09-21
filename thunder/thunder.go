@@ -84,35 +84,36 @@ func (t *Thunder) Search(databaseName, tableName string, data [][]byte) ([]byte,
 		filterField[columnIndex] = f.New(data[dataIndex], data[dataIndex+1], data[dataIndex+2])
 	}
 
-	index, key, position := ChooseIndex(tableProcess, filterField)
-	return index.Search(key, filterField, position, tableProcess.GetColumns())
+	index, key := ChooseIndex(tableProcess, filterField)
+	return index.Search(key, filterField, tableProcess.GetColumns())
 }
 
-func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]byte, int) {
+func ChooseIndex(t *table.Table, filterField []f.FilterField) (index.Index, [][]byte) {
 	for i, column := range filterField {
 		userColumn := column.GetField()
 		if userColumn == "id" {
-			var f int
-			if filterField[i].GetOperation() == "==" {
-				f = 1
-			}
+			// var f int
+			// if filterField[i].GetOperation() == "==" {
+			// 	f = 1
+			// }
 
-			return t.GetClusterIndex(), [][]byte{filterField[i].GetValue()}, f
+			return t.GetClusterIndex(), [][]byte{filterField[i].GetValue()}
 		}
 
 		for j, index := range t.GetNonClusterIndex() {
 			if index.GetByColumn()[0] == userColumn {
-				key, f := ColumnBySearch(index.GetByColumn(), filterField), 0
-				if filterField[len(key)-1].GetOperation() == "==" {
-					f = len(key)
-				}
+				key := ColumnBySearch(index.GetByColumn(), filterField) //crate key for index
+				//f := 0
+				// if filterField[len(key)-1].GetOperation() == "==" {
+				// 	f = len(key)
+				// }
 
-				return t.GetNonClusterIndex()[j], key, f
+				return t.GetNonClusterIndex()[j], key
 			}
 		}
 	}
 
-	return t.GetClusterIndex(), [][]byte{}, 0 //Work
+	return t.GetClusterIndex(), [][]byte{} //Work
 }
 
 func ColumnBySearch(index []string, filter []f.FilterField) [][]byte {

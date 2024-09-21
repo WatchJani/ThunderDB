@@ -154,6 +154,10 @@ func (t *Node[V]) GetItem(index int) item[V] {
 	return t.items[index]
 }
 
+func (t *Node[V]) GetValue(index int) V {
+	return t.items[index].value
+}
+
 func (t *Node[V]) NextLeft() *Node[V] {
 	return t.nextNodeL
 }

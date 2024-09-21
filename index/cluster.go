@@ -54,16 +54,39 @@ func (c *Cluster) GetByColumn() []string {
 	return []string{c.byColumn}
 }
 
-//========================================================================
+// ========================================================================
+type NextData interface {
+	Next()
+}
 
 type FileReader struct {
 	offset int
+	chunk  int
 	file   *os.File
 }
 
-func NewFileReader(file *os.File) *FileReader {
+func NewFileReader(file *os.File,
+	fileIndex *t.Tree[int],
+	key [][]byte,
+	tableFields []column.Column,
+	filter []filter.FilterField,
+) *FileReader {
+	node, nodeIndex, _ := fileIndex.Find(key, filter[len(key)-1].GetOperation())
+	if nodeIndex == -1 {
+		return nil
+	}
+
+	//find chunk and go on that position
+	chunk := node.GetValue(nodeIndex)
+	file.Seek(int64(chunk), 0)
+
+	//load data into buffer
+	buffer := make([]byte, 4096)
+	file.Read(buffer)
+
 	return &FileReader{
-		file: file,
+		file:  file,
+		chunk: chunk,
 	}
 }
 
@@ -71,13 +94,13 @@ func (f *FileReader) Next() {
 
 }
 
-type NextData interface {
-	Next()
-}
+//!====================================================================================
 
 type InMemory struct {
-	buffer []byte
-	node   *skip_list.Node
+	buffer      []byte
+	node        *skip_list.Node
+	tableFields []column.Column
+	filter      []filter.FilterField
 }
 
 func NewInMemory(
@@ -86,57 +109,81 @@ func NewInMemory(
 	key [][]byte,
 	filter []filter.FilterField,
 	tableFields []column.Column,
-) *InMemory {
+) (*InMemory, []byte) {
 	if buffer == nil { //Check for frozen memory
-		return nil
+		return nil, []byte{}
 	}
 
-	node, _ := tree.Search(key, "==") //search first node
+	node, _ := tree.Search(key, filter[len(key)-1].GetOperation()) //search first node
+
+	for {
+		found, data, err := checkValidity(node, buffer, tableFields, filter)
+		if err != nil {
+			return nil, []byte{}
+		}
+
+		if found {
+			return &InMemory{
+				buffer:      buffer,
+				node:        node,
+				tableFields: tableFields,
+				filter:      filter,
+			}, data
+		}
+
+		node = node.NextNode()
+	}
+}
+
+func checkValidity(node *skip_list.Node, buffer []byte, tableFields []column.Column, filter []filter.FilterField) (bool, []byte, error) {
 	if node == nil {
-		return nil
+		return false, []byte{}, fmt.Errorf("node is not exist")
 	}
 
 	offset := node.GetValue() //read value from node
 	if offset == -1 {
-		return nil
+		return false, []byte{}, fmt.Errorf("wrong data for parsing")
 	}
 
 	size, err := strconv.Atoi(string(buffer[offset : offset+5])) //get data size
 	if err != nil {
-		log.Println(err)
-		return nil
+		return false, []byte{}, err
 	}
 
 	data := buffer[offset : offset+size+5]                   //our data
 	col, err := helper.ReadSingleData(data[5:], tableFields) //read all column from data
 	if err != nil {
-		log.Println(err)
-		return nil
+		return false, []byte{}, err
 	}
 
 	var found bool = true
 	for _, filterFn := range filter {
 		index := helper.GetColumnNameIndex(filterFn.GetField(), tableFields)
 
-		fmt.Println(string(col[index]))
 		if !filterFn.GetFilter()(col[index]) {
 			found = false
 			break
 		}
 	}
 
-	fmt.Println(col)
-	fmt.Println(string(data))
-	fmt.Println(found)
-
-	return &InMemory{
-		buffer: buffer,
-		node:   node,
-	}
+	return found, buffer[offset : offset+5+size], nil
 }
 
-func (f *InMemory) Next() {
+func (f *InMemory) Next() []byte {
+	node := f.node
 
+	for {
+		node = node.NextNode()
+		next, data, err := checkValidity(node, f.buffer, f.tableFields, f.filter)
+		if err != nil {
+			log.Println(err)
+			return nil
+		}
+
+		if next {
+			return data
+		}
+	}
 }
 
 func Generate(
@@ -145,18 +192,31 @@ func Generate(
 	key [][]byte,
 	filter []filter.FilterField,
 	tableFields []column.Column,
-) (*InMemory, *InMemory, *FileReader) {
+	fileIndex *t.Tree[int],
+) (*InMemory, []byte, *InMemory, []byte, *FileReader) {
 	store, memTableMemory, frozenMemory, skipListFrozen := manager.GetAllData()
-	return NewInMemory(memTable, memTableMemory, key, filter, tableFields),
-		NewInMemory(skipListFrozen, frozenMemory, key, filter, tableFields),
-		NewFileReader(store)
+
+	memTableBuffer, dataMemTable := NewInMemory(memTable,
+		memTableMemory,
+		key,
+		filter,
+		tableFields,
+	)
+	frozenBuffer, dataFrozen := NewInMemory(skipListFrozen,
+		frozenMemory,
+		key,
+		filter,
+		tableFields,
+	)
+	
+	return memTableBuffer, dataMemTable, frozenBuffer, dataFrozen, NewFileReader(store, fileIndex, key, tableFields, filter)
 }
 
-//fix the index
-//fix cutter cluster inset
+// fix cutter cluster inset
+func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, tableFields []column.Column) ([]byte, error) {
+	_, memTableData, _, _, _ := Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex)
 
-func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, index int, tableFields []column.Column) ([]byte, error) {
-	Generate(c.Manager, c.memTableIndex, key, filter, tableFields)
+	fmt.Println(string(memTableData))
 
 	return []byte{}, nil
 }
