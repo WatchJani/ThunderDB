@@ -102,12 +102,6 @@ func (n *Node[V]) search(target [][]byte) (int, bool) {
 	return low, false
 }
 
-func (t *Tree[V]) TestRoot() {
-	for _, item := range t.root.items[:t.root.pointer] {
-		fmt.Println(item.key)
-	}
-}
-
 func newStack[V any]() Stack[V] {
 	return Stack[V]{
 		store: make([]positionStr[V], 0, 4),
@@ -130,7 +124,6 @@ func (s *Stack[V]) Pop() (positionStr[V], error) {
 	s.store = s.store[:len(s.store)-1]
 	return pop, nil
 }
-
 func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
 	var (
 		prevues  *Node[V]
@@ -205,6 +198,19 @@ func (t *Node[V]) GoBack(res int) (*Node[V], int) {
 	return nil, -1
 }
 
+func (t *Node[V]) GoForward(res int) (*Node[V], int) {
+	if res+1 < t.pointer {
+		return t, res + 1
+	}
+
+	node := t.nextNodeR
+	if node != nil {
+		return node, 0
+	}
+
+	return nil, -1
+}
+
 func (t *Node[V]) GetItem(index int) item[V] {
 	return t.items[index]
 }
@@ -223,15 +229,14 @@ func (t *Node[V]) NextRight() *Node[V] {
 
 func (t *Tree[V]) Insert(key [][]byte, value V) {
 	stack, item := newStack[V](), newItem(key, value)
-	position, _ := findLeaf(t.root, &stack, key)
+	position, found := findLeaf(t.root, &stack, key)
 
 	current, _ := stack.Pop()
-
 	//update just state state
-	// if found {
-	// 	current.node.items[position].value = value
-	// 	return
-	// }
+	if found {
+		current.node.items[position].value = value
+		return
+	}
 
 	if middleKey, nodeChildren := insertLeaf(current.node, position, t.degree, item); nodeChildren != nil {
 		for {

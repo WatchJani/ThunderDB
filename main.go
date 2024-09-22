@@ -1,13 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"log"
-
-	// _ "root/init"
-
-	b "root/b_plus_tree"
-)
+// _ "root/init"
 
 func main() {
 	// tree := b.New[int](100)
@@ -49,31 +42,31 @@ func main() {
 
 	// fmt.Println(offset)
 
-	tree := b.New[int](11)
+	// tree := b.New[int](11)
 
-	key1 := [][]byte{[]byte("1111")}
-	tree.Insert(key1, 1)
-	key2 := [][]byte{[]byte("1131")}
-	tree.Insert(key2, 2)
-	key3 := [][]byte{[]byte("2111")}
-	tree.Insert(key3, 3)
-	key4 := [][]byte{[]byte("1114")}
-	tree.Insert(key4, 4)
-	key5 := [][]byte{[]byte("1141")}
-	tree.Insert(key5, 5)
-	key6 := [][]byte{[]byte("1141")}
-	tree.Insert(key6, 6)
-	key7 := [][]byte{[]byte("1231")}
-	tree.Insert(key7, 7)
+	// key1 := [][]byte{[]byte("1111")}
+	// tree.Insert(key1, 1)
+	// key2 := [][]byte{[]byte("1131")}
+	// tree.Insert(key2, 2)
+	// key3 := [][]byte{[]byte("2111")}
+	// tree.Insert(key3, 3)
+	// key4 := [][]byte{[]byte("1114")}
+	// tree.Insert(key4, 4)
+	// key5 := [][]byte{[]byte("1141")}
+	// tree.Insert(key5, 5)
+	// key6 := [][]byte{[]byte("1141")}
+	// tree.Insert(key6, 6)
+	// key7 := [][]byte{[]byte("1231")}
+	// tree.Insert(key7, 7)
 
-	node, index, err := tree.Find(key1, "==")
-	fmt.Println("index", index)
-	if err != nil {
-		log.Println(err)
-	}
+	// node, index, err := tree.Find(key1, "==")
+	// fmt.Println("index", index)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 
-	fmt.Println(node.GetValue(index))
+	// fmt.Println(node.GetValue(index))
 
-	fmt.Println("test")
-	tree.TestRoot()
+	// fmt.Println("test")
+	// tree.TestRoot()
 }

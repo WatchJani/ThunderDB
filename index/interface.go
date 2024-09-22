@@ -11,3 +11,8 @@ type Index interface {
 	GetIndexType() string
 	Search([][]byte, []filter.FilterField, []column.Column) ([]byte, error)
 }
+
+type NextData interface {
+	Next() error
+	Read() []byte
+}
