@@ -1,6 +1,6 @@
 package main
 
-// _ "root/init"
+import _ "root/init"
 
 func main() {
 	// tree := b.New[int](100)

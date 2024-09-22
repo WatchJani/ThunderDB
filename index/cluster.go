@@ -331,9 +331,31 @@ func Generate(
 func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, tableFields []column.Column) ([]byte, error) {
 	res := make([]byte, 4096)
 
-	for _, obj := range Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex) {
-		fmt.Println(obj)
-	}
-
+	MergeSort(Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex), res)
+	fmt.Println(res)
 	return res, nil
+}
+
+func MergeSort(tro []NextData, data []byte) {
+	offset := 0
+
+	for i := 0; i < len(tro); {
+		if singleData := tro[i].Read(); singleData != nil {
+			copy(data[offset:], singleData)
+			offset += len(singleData)
+
+			if err := tro[i].Next(); err != nil {
+				tro = removeElement(tro, i)
+				continue
+			}
+		} else {
+			tro = removeElement(tro, i)
+			continue
+		}
+		i++
+	}
+}
+
+func removeElement(slice []NextData, i int) []NextData {
+	return append(slice[:i], slice[i+1:]...)
 }
