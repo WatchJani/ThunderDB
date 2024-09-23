@@ -125,6 +125,10 @@ func (s *Stack[V]) Pop() (positionStr[V], error) {
 	return pop, nil
 }
 func (t *Tree[V]) Find(key [][]byte, operation string) (*Node[V], int, error) {
+	if t.root.pointer == 0 {
+		return nil, -1, fmt.Errorf("this tree is empty")
+	}
+
 	var (
 		prevues  *Node[V]
 		position int = -1
