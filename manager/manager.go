@@ -17,6 +17,10 @@ type Manager struct {
 	stack stack.Stack[[]byte]
 }
 
+func (m *Manager) GetStore() *os.File {
+	return m.store
+}
+
 func (m *Manager) GetAllData() (*os.File, []byte, []byte, *skip_list.SkipList) {
 	return m.store, m.memTable, m.old, m.tree
 }
@@ -28,6 +32,14 @@ func (m *Manager) SetOld(data []byte, tree *skip_list.SkipList) {
 
 func (m *Manager) GetOld() *[]byte {
 	return &m.old
+}
+
+func (m *Manager) GetFrozenMemory() []byte {
+	return m.old
+}
+
+func (m *Manager) GetMemTable() []byte {
+	return m.memTable
 }
 
 func New(memTable []byte, file *os.File) (*Manager, error) {
