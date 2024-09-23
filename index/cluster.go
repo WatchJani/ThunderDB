@@ -335,7 +335,8 @@ func Generate(
 
 // fix cutter cluster inset
 func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, tableFields []column.Column) ([]byte, error) {
-	res := make([]byte, 4096)
+	res := c.Manager.GetFreeByte()
+	defer c.Manager.FlushFreeByte(res)
 
 	MergeData(Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex), res)
 	return res, nil
