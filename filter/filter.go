@@ -24,7 +24,7 @@ func GenerateFilter(operation, input []byte) func([]byte) bool {
 // [<=]
 func LessThanOrEqualTo(input []byte) func([]byte) bool {
 	return func(b []byte) bool {
-		result := bytes.Compare(input, b)
+		result := bytes.Compare(b, input)
 		return result == 0 || result == -1
 	}
 }
@@ -32,7 +32,7 @@ func LessThanOrEqualTo(input []byte) func([]byte) bool {
 // [<]
 func LessThan(input []byte) func([]byte) bool {
 	return func(b []byte) bool {
-		result := bytes.Compare(input, b)
+		result := bytes.Compare(b, input)
 		return result == -1
 	}
 }
@@ -40,7 +40,7 @@ func LessThan(input []byte) func([]byte) bool {
 // [>]
 func GreaterThan(input []byte) func([]byte) bool {
 	return func(b []byte) bool {
-		result := bytes.Compare(input, b)
+		result := bytes.Compare(b, input)
 		return result == 1
 	}
 }
@@ -48,7 +48,7 @@ func GreaterThan(input []byte) func([]byte) bool {
 // [>=]
 func GreaterOrEqualTo(input []byte) func([]byte) bool {
 	return func(b []byte) bool {
-		result := bytes.Compare(input, b)
+		result := bytes.Compare(b, input)
 		return result == 0 || result == 1
 	}
 }
@@ -56,6 +56,6 @@ func GreaterOrEqualTo(input []byte) func([]byte) bool {
 // [==]
 func EqualTo(input []byte) func([]byte) bool {
 	return func(b []byte) bool {
-		return bytes.Equal(input, b)
+		return bytes.Equal(b, input)
 	}
 }

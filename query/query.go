@@ -4,6 +4,10 @@ func Insert() []byte {
 	return []byte("INSERT Movies Actor 0004400016123456789101112100011Maze runner0000220")
 }
 
+func Insert2() []byte {
+	return []byte("INSERT Movies Actor 0004400016423456789101112100011Maze runner0000220")
+}
+
 func CreateDataBase() []byte {
 	return []byte("CREATE_DATABASE Movies")
 }
@@ -18,5 +22,5 @@ func NewIndex() []byte {
 }
 
 func Search() []byte {
-	return []byte("SEARCH Movies Actor id == 1234567891011121")
+	return []byte("SEARCH Movies Actor id > 1234567891011120")
 }

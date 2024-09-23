@@ -165,6 +165,10 @@ func Offset(offset int, buffer []byte, tableFields []column.Column, filter []fil
 		for _, filterFn := range filter {
 			index := helper.GetColumnNameIndex(filterFn.GetField(), tableFields)
 
+			if index == -1 {
+				break
+			}
+
 			if !filterFn.GetFilter()(col[index]) {
 				found = false
 				break
@@ -274,6 +278,7 @@ func (f *InMemory) Next() error {
 
 	for {
 		node = node.NextNode()
+
 		next, data, err := checkValidity(node, f.buffer, f.tableFields, f.filter)
 		if err != nil {
 			return err
@@ -281,6 +286,7 @@ func (f *InMemory) Next() error {
 
 		if next {
 			f.data = data
+			f.node = node
 			return nil
 		}
 	}
@@ -331,12 +337,11 @@ func Generate(
 func (c *Cluster) Search(key [][]byte, filter []filter.FilterField, tableFields []column.Column) ([]byte, error) {
 	res := make([]byte, 4096)
 
-	MergeSort(Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex), res)
-	fmt.Println(res)
+	MergeData(Generate(c.Manager, c.memTableIndex, key, filter, tableFields, c.fileIndex), res)
 	return res, nil
 }
 
-func MergeSort(tro []NextData, data []byte) {
+func MergeData(tro []NextData, data []byte) {
 	offset := 0
 
 	for i := 0; i < len(tro); {
@@ -345,17 +350,10 @@ func MergeSort(tro []NextData, data []byte) {
 			offset += len(singleData)
 
 			if err := tro[i].Next(); err != nil {
-				tro = removeElement(tro, i)
+				i++
 				continue
 			}
-		} else {
-			tro = removeElement(tro, i)
-			continue
 		}
-		i++
 	}
-}
 
-func removeElement(slice []NextData, i int) []NextData {
-	return append(slice[:i], slice[i+1:]...)
 }

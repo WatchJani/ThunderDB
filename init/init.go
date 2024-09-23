@@ -34,10 +34,15 @@ func init() {
 		return
 	}
 
-	// if _, err := thunder.QueryParser(query.Search()); err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
+	if _, err := thunder.QueryParser(query.Insert2()); err != nil {
+		log.Println(err)
+		return
+	}
+
+	if _, err := thunder.QueryParser(query.Search()); err != nil {
+		log.Println(err)
+		return
+	}
 
 	time.Sleep(5 * time.Second)
 }
