@@ -60,10 +60,8 @@ func (c *NonCluster) UpdateIndex(key [][]byte, offset int) {
 }
 
 func (c *NonCluster) Search(key [][]byte, filter []filter.FilterField, tableFields []column.Column) ([]byte, error) {
-	res := c.GetFreeByte()
+	res, dataBlock := c.GetFreeByte(), c.GetFreeByte()
 	defer c.FlushFreeByte(res)
-
-	dataBlock := c.GetFreeByte()
 	defer c.FlushFreeByte(dataBlock)
 
 	memTableMemory, frozenMemory, offset := c.Manager.GetMemTable(), c.Manager.GetFrozenMemory(), 0
@@ -73,7 +71,7 @@ func (c *NonCluster) Search(key [][]byte, filter []filter.FilterField, tableFiel
 		log.Println(err)
 	}
 
-	for {
+	for node != nil {
 		location := node.GetValue(index)
 		if location.location == 'm' { //search in memory
 			offset := location.offset
