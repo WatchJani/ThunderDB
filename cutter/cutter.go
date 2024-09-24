@@ -50,7 +50,7 @@ func (c *Cutter) Cut() {
 	singleData := make([]int, 0, 20)
 
 	for {
-		dataBlock, size, tableWg, nonCluster, columns := c.link.Receive()
+		dataBlock, size, tableWg, nonCluster, cluster, columns := c.link.Receive()
 		var wg sync.WaitGroup
 
 		data, stack := (*dataBlock)[:size], make([]byte, 4096)
@@ -76,14 +76,14 @@ func (c *Cutter) Cut() {
 					wg:    &wg,
 				}
 
-				//add index for cluster
+				cluster.Insert([][]byte{data[10:26]}, c.chunk*4096)
 
 				for _, nonClusterIndex := range nonCluster { // update all nonCluster key
 					for sdIndex := 0; sdIndex < len(singleData); sdIndex += 2 { // update all data index for one single chunk (block file)
 						data := data[singleData[sdIndex]+5 : singleData[sdIndex+1]]
 						columnData, _ := helper.ReadSingleData(data, columns)
 						key := table.GenerateKey(nonClusterIndex, columnData, columns)
-						nonClusterIndex.UpdateIndex(key, singleData[sdIndex]*c.chunk)
+						nonClusterIndex.UpdateIndex(key, singleData[sdIndex]+4096*c.chunk)
 					}
 				}
 

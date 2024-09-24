@@ -90,7 +90,7 @@ func (t *Table) Insert(data []byte) int {
 		t.wg.Wait()
 		t.wg.Add(1)
 		t.SetOld(t.memTable, t.cluster.GetDataStructure()) //set to manager to old
-		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg, t.nonCluster, t.columns)
+		t.Link <- linker.NewPayload(t.GetOld(), t.counter, &t.wg, t.nonCluster, t.cluster, t.columns)
 
 		t.memTable = make([]byte, 8*1024*1024)
 		t.cluster.NewMemTableIndex()
